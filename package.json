@@ -11,10 +11,7 @@
   ],
   "license": "MIT",
   "homepage": "https://checkmob.com",
-  "author": {
-    "name": "Checkmob",
-    "email": "suporte@checkmob.com"
-  },
+  "author": { "name": "Checkmob", "email": "suporte@checkmob.com" },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/checkmob/n8n-nodes-checkmob.git"
@@ -28,19 +25,12 @@
     "lintfix": "eslint nodes/ credentials/ package.json --fix",
     "prepublishOnly": "npm run build && npm run lint"
   },
-  "files": [
-    "dist/",
-    "README.md",
-    "LICENSE.md"
-  ],
+  "files": ["dist/", "README.md", "LICENSE.md"],
   "n8n": {
     "n8nNodesApiVersion": 1,
-    "credentials": [
-      "dist/credentials/CheckmobApi.credentials.js"
-    ],
-    "nodes": [
-      "dist/nodes/Checkmob/Checkmob.node.js"
-    ]
+    "credentials": ["dist/credentials/CheckmobApi.credentials.js"],
+    "nodes": ["dist/nodes/Checkmob/Checkmob.node.js"],
+    "strict": true
   },
   "devDependencies": {
     "@n8n/node-cli": "^0.45.2",
@@ -51,7 +41,5 @@
     "n8n-workflow": "^2.16.0",
     "typescript": "^5.9.3"
   },
-  "peerDependencies": {
-    "n8n-workflow": "*"
-  }
+  "peerDependencies": { "n8n-workflow": "*" }
 }
