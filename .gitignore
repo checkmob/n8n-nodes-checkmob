@@ -1,2 +1,13 @@
+# Folders
 node_modules
 dist
+tmp
+.vscode/
+.DS_Store
+.pnpm-store
+
+# Files
+.env
+npm-debug.log*
+.tmp
+!.vscode/extensions.json
