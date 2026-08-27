@@ -1,8 +1,5 @@
 import type {
-	ICredentialTestFunctions,
-	ICredentialsDecrypted,
 	IExecuteFunctions,
-	INodeCredentialTestResult,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
@@ -125,7 +122,7 @@ export class Checkmob implements INodeType {
 		defaults: { name: 'Checkmob' },
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
-		credentials: [{ name: 'checkmobApi', required: true, testedBy: 'testCheckmobApi' }],
+		credentials: [{ name: 'checkmobApi', required: true }],
 		properties: [
 			resourceSelector,
 			languageSelector,
@@ -152,36 +149,6 @@ export class Checkmob implements INodeType {
 			...travel.description,
 		],
 		usableAsTool: true,
-	};
-
-	methods = {
-		credentialTest: {
-			async testCheckmobApi(
-				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
-			): Promise<INodeCredentialTestResult> {
-				const creds = credential.data as { baseUrl: string; login: string; password: string };
-				const baseUrl = creds.baseUrl.replace(/\/$/, '');
-
-				try {
-					const res = await fetch(`${baseUrl}/v2/token`, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json', 'Accept-Language': 'pt-BR' },
-						body: JSON.stringify({ login: creds.login, senha: creds.password }),
-					});
-					const data = (await res.json()) as { token_acesso?: string; detalhe?: string; titulo?: string };
-
-					if (res.ok && data?.token_acesso) {
-						return { status: 'OK', message: 'Autenticação realizada com sucesso.' };
-					}
-
-					const msg = data?.detalhe ?? data?.titulo ?? 'Login falhou. Verifique login e senha.';
-					return { status: 'Error', message: msg };
-				} catch (err) {
-					return { status: 'Error', message: `Erro de conexão: ${(err as Error).message}` };
-				}
-			},
-		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {

@@ -1,6 +1,7 @@
 import type {
 	IAuthenticateGeneric,
 	ICredentialDataDecryptedObject,
+	ICredentialTestRequest,
 	ICredentialType,
 	IDataObject,
 	IHttpRequestHelper,
@@ -76,6 +77,15 @@ export class CheckmobApi implements ICredentialType {
 			headers: {
 				Authorization: '=Bearer {{$credentials.accessToken}}',
 			},
+		},
+	};
+
+	test: ICredentialTestRequest = {
+		request: {
+			baseURL: '={{$credentials.baseUrl}}',
+			url: '/v2/usuarios/list',
+			method: 'POST',
+			body: { pagina: 1, por_pagina: 1 },
 		},
 	};
 }
