@@ -2,36 +2,30 @@
 
 [![npm version](https://img.shields.io/npm/v/n8n-nodes-checkmob)](https://www.npmjs.com/package/n8n-nodes-checkmob)
 
-Community node for **[Checkmob](https://checkmob.com)** — field service management platform.
+This is an n8n community node. It lets you use the **[Checkmob](https://checkmob.com)** field service management platform in your n8n workflows.
 
-Handles JWT authentication automatically: the node logs in using your credentials and reuses the token until it expires.
+Checkmob is a Brazilian field service management platform used to manage clients, people, groups, service orders, visits (registros), questionnaires (checklists) and mileage/travel tracking for field teams, with a REST API (v2) covering the full lifecycle of a field service operation.
 
-> **v1.0.0 — migrated to Checkmob API v2.** This version connects to the Checkmob **API v2** (`/v2/...`), which is not backwards compatible with the old `/api/v1/...` endpoints used by previous releases.
+[n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
----
+[Installation](#installation)  
+[Operations](#operations)  
+[Credentials](#credentials)  
+[Compatibility](#compatibility)  
+[Usage](#usage)  
+[Resources](#resources)
 
 ## Installation
 
-In your n8n instance go to **Settings → Community Nodes → Install** and enter:
+Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
 
-```
+```text
 n8n-nodes-checkmob
 ```
 
----
+## Operations
 
-## Credentials
-
-1. In n8n go to **Credentials → New → Checkmob API**
-2. Fill in:
-   - **Login** — seu Usuário ou E-mail
-   - **Senha** — sua Senha
-
-The node connects to `https://api-integration.checkmob.com` and obtains the Bearer Token automatically.
-
----
-
-## Resources & Operations
+This node supports the following Checkmob resources and operations:
 
 | Resource | Operations |
 |---|---|
@@ -57,15 +51,39 @@ The node connects to `https://api-integration.checkmob.com` and obtains the Bear
 | **Tipo de Serviço** | Listar |
 | **Usuário** | Listar · Buscar · Buscar Localização |
 
-Note: some fields available in the old API v1 (e.g. setting a client's categoria/temperatura/etapa/valor de negócio at creation time) are read-only in API v2 — see the [Checkmob v2 docs](https://api-integration.checkmob.com/index.html) for the current capabilities of each resource.
+> Some fields available in the old API v1 (e.g. setting a client's categoria/temperatura/etapa/valor de negócio at creation time) are read-only in API v2 — see the [Checkmob v2 docs](https://api-integration.checkmob.com/index.html) for the current capabilities of each resource.
 
----
+This node can also be used as a **tool by AI Agents** in n8n, so an agent can call Checkmob resources directly from natural-language instructions.
 
-## Configuration
+## Credentials
 
-### Idioma
+To use this node, you need a Checkmob account with API access.
 
-Each node instance exposes a **Idioma** (Language) dropdown:
+### Prerequisites
+
+1. Have an active Checkmob account with a valid **login** (usuário or e-mail) and **senha**.
+
+### Authentication Setup
+
+1. In n8n, go to **Credentials** → **New** → **Checkmob API**
+2. Fill in:
+   - **Login** — your Checkmob username or e-mail
+   - **Senha** — your Checkmob password
+3. **Save** the credential.
+
+The node authenticates against `https://api-integration.checkmob.com`, obtains a Bearer token automatically, and transparently refreshes it when it expires — no manual token management is needed.
+
+## Compatibility
+
+- **n8n Nodes API Version**: 1
+- Built with [`@n8n/node-cli`](https://www.npmjs.com/package/@n8n/node-cli) and TypeScript, following current n8n community node standards (declarative credential authentication via `preAuthentication`, `usableAsTool` for AI Agents).
+- Requires an n8n version that supports community nodes (self-hosted, or a Checkmob API integration verified for n8n Cloud).
+
+## Usage
+
+### Idioma (Language)
+
+Each node instance exposes an **Idioma** dropdown:
 
 | Option | Value |
 |---|---|
@@ -86,14 +104,33 @@ When **Continue on Error** is enabled, failed items return a JSON object instead
 }
 ```
 
----
+### Best Practices
 
-## API Reference
+- Use n8n's error handling nodes (or **Continue on Error**, above) to manage API failures gracefully in production workflows.
+- The node returns structured JSON data that can be mapped directly into other n8n nodes.
 
-[https://api-integration.checkmob.com/swagger/v2/swagger.json](https://api-integration.checkmob.com/swagger/v2/swagger.json)
+For beginners, check out the [n8n Try it out](https://docs.n8n.io/try-it-out/) documentation to learn the basics of workflow automation.
 
----
+## Resources
+
+### n8n Documentation
+
+- [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
+- [n8n workflow automation guide](https://docs.n8n.io/try-it-out/)
+- [n8n credentials management](https://docs.n8n.io/integrations/credentials/)
+
+### Checkmob Documentation
+
+- [Checkmob API v2 reference](https://api-integration.checkmob.com/index.html)
+- [Checkmob API v2 Swagger/OpenAPI spec](https://api-integration.checkmob.com/swagger/v2/swagger.json)
+- [Checkmob](https://checkmob.com)
+
+### Support & Community
+
+- [n8n Community Forum](https://community.n8n.io/)
+- [n8n GitHub Discussions](https://github.com/n8n-io/n8n/discussions)
+- [Checkmob repository](https://github.com/checkmob/n8n-nodes-checkmob)
 
 ## License
 
-MIT
+[MIT](LICENSE.md)
