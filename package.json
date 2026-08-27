@@ -1,0 +1,58 @@
+{
+  "name": "n8n-nodes-checkmob",
+  "version": "1.1.12",
+  "description": "n8n community node for Checkmob — field service management platform",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "checkmob",
+    "field-service",
+    "automation"
+  ],
+  "license": "MIT",
+  "homepage": "https://checkmob.com",
+  "author": {
+    "name": "Checkmob",
+    "email": "suporte@checkmob.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/checkmob/n8n-nodes-checkmob.git"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && gulp build:icons",
+    "dev": "tsc --watch",
+    "format": "prettier \"nodes/**/*.{ts,js,json,md}\" \"credentials/**/*.{ts,js,json,md}\" --write",
+    "lint": "eslint nodes/ credentials/ package.json --max-warnings=0",
+    "lintfix": "eslint nodes/ credentials/ package.json --fix",
+    "prepublishOnly": "npm run build && npm run lint"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "example-workflow.json",
+    "LICENSE.md"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/CheckmobApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Checkmob/Checkmob.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "^0.45.2",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.29.0",
+    "gulp": "^4.0.2",
+    "n8n-workflow": "^2.16.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}
