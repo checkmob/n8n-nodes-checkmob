@@ -4,26 +4,25 @@ import { apiRequest, assertApiSuccess, toList } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['checklist'] } },
 		options: [
-			{ name: 'Buscar', value: 'get', description: 'Buscar um questionário pelo ID', action: 'Buscar questionario' },
-			{ name: 'Listar', value: 'list', description: 'Listar questionários', action: 'Listar questionarios' },	
-			{ name: 'Remover Vínculo De Grupo', value: 'deleteLinkGroup', description: 'Desvincular um grupo do questionário', action: 'Remover vinculo de grupo' },
-			{ name: 'Remover Vínculo De Segmento', value: 'deleteLinkSegment', description: 'Desvincular um segmento do questionário', action: 'Remover vinculo de segmento' },
-			{ name: 'Vincular Grupo', value: 'linkGroup', description: 'Vincular um grupo ao questionário', action: 'Vincular grupo ao questionario' },			
-			{ name: 'Vincular Segmento', value: 'linkSegment', description: 'Vincular um segmento ao questionário', action: 'Vincular segmento ao questionario' },
-			
+			{ name: 'Get', value: 'get', description: 'Get a checklist by ID', action: 'Get checklist' },
+			{ name: 'Link Group', value: 'linkGroup', description: 'Link a group to the checklist', action: 'Link group to checklist' },
+			{ name: 'Link Segment', value: 'linkSegment', description: 'Link a segment to the checklist', action: 'Link segment to checklist' },
+			{ name: 'List', value: 'list', description: 'List checklists', action: 'List checklists' },
+			{ name: 'Remove Group Link', value: 'deleteLinkGroup', description: 'Unlink a group from the checklist', action: 'Remove group link' },
+			{ name: 'Remove Segment Link', value: 'deleteLinkSegment', description: 'Unlink a segment from the checklist', action: 'Remove segment link' },
 		],
 		default: 'list',
 	},
 
-	// ── Listar ───────────────────────────────────────────────────────────────────
+	// ── List ─────────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
@@ -31,7 +30,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['checklist'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
@@ -39,36 +38,36 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['checklist'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Busca',
+		displayName: 'Search',
 		name: 'clSearch',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['checklist'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Ativo',
+		displayName: 'Active',
 		name: 'clActive',
 		type: 'options',
 		options: [
-			{ name: 'Todos', value: 'all' },
-			{ name: 'Ativo', value: 'true' },
-			{ name: 'Inativo', value: 'false' },
+			{ name: 'All', value: 'all' },
+			{ name: 'Active', value: 'true' },
+			{ name: 'Inactive', value: 'false' },
 		],
 		default: 'all',
 		displayOptions: { show: { resource: ['checklist'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Vigente Em',
+		displayName: 'Effective On',
 		name: 'clVigenteEm',
 		type: 'dateTime',
 		default: '',
 		displayOptions: { show: { resource: ['checklist'], operation: ['list'] } },
-		description: 'Retorna apenas questionários vigentes na data informada',
+		description: 'Returns only checklists that are effective on the given date',
 	},
 
-	// ── Buscar ───────────────────────────────────────────────────────────────────
+	// ── Get ──────────────────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Do Questionário',
+		displayName: 'Checklist ID',
 		name: 'clGetId',
 		type: 'number',
 		default: 0,
@@ -76,9 +75,9 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['checklist'], operation: ['get'] } },
 	},
 
-	// ── Vincular / Remover Grupo e Segmento ──────────────────────────────────────
+	// ── Link / Remove Group and Segment ──────────────────────────────────────────
 	{
-		displayName: 'ID Do Questionário',
+		displayName: 'Checklist ID',
 		name: 'clId',
 		type: 'number',
 		default: 0,
@@ -86,7 +85,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['checklist'], operation: ['linkGroup', 'deleteLinkGroup', 'linkSegment', 'deleteLinkSegment'] } },
 	},
 	{
-		displayName: 'ID Do Grupo',
+		displayName: 'Group ID',
 		name: 'clIdGroup',
 		type: 'number',
 		default: 0,
@@ -94,7 +93,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['checklist'], operation: ['linkGroup', 'deleteLinkGroup'] } },
 	},
 	{
-		displayName: 'ID Do Segmento',
+		displayName: 'Segment ID',
 		name: 'clIdSegment',
 		type: 'number',
 		default: 0,
@@ -205,5 +204,5 @@ export async function execute(
 		return this.helpers.returnJsonArray([{ id, idSegmento, desvinculado: true }]);
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

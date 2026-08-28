@@ -4,89 +4,89 @@ import { apiRequest, assertApiSuccess, toList, toNumArray, parseJson } from '../
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['client'] } },
 		options: [
-			{ name: 'Buscar', value: 'get', description: 'Buscar um cliente pelo ID', action: 'Buscar cliente' },
-			{ name: 'Criar', value: 'post', description: 'Criar um novo cliente', action: 'Criar cliente' },
-			{ name: 'Criar Em Lote', value: 'postBulk', description: 'Criar múltiplos clientes em uma única chamada (máx. 500).', action: 'Criar clientes em lote' },
-			{ name: 'Desvincular Pessoas', value: 'unlinkPeople', description: 'Desfazer vínculo entre cliente e pessoas (máx. 500).', action: 'Desvincular pessoas do cliente' },
-			{ name: 'Editar Parcialmente', value: 'patch', description: 'Atualizar parcialmente um cliente existente', action: 'Editar cliente parcialmente' },
-			{ name: 'Excluir', value: 'delete', description: 'Excluir um cliente', action: 'Excluir cliente' },
-			{ name: 'Listar', value: 'list', description: 'Buscar clientes de forma paginada e com filtros', action: 'Listar clientes' },
-			{ name: 'Substituir', value: 'put', description: 'Substituir um cliente existente', action: 'Substituir cliente' },
-			{ name: 'Vincular Pessoas', value: 'linkPeople', description: 'Vincular uma ou mais pessoas ao cliente (máx. 500).', action: 'Vincular pessoas ao cliente' },	
+			{ name: 'Create', value: 'post', description: 'Create a new client', action: 'Create client' },
+			{ name: 'Create in Bulk', value: 'postBulk', description: 'Create multiple clients in a single call (max. 500).', action: 'Create clients in bulk' },
+			{ name: 'Delete', value: 'delete', description: 'Delete a client', action: 'Delete client' },
+			{ name: 'Get', value: 'get', description: 'Get a client by ID', action: 'Get client' },
+			{ name: 'Link People', value: 'linkPeople', description: 'Link one or more people to the client (max. 500).', action: 'Link people to client' },
+			{ name: 'List', value: 'list', description: 'Get clients paginated and with filters', action: 'List clients' },
+			{ name: 'Replace', value: 'put', description: 'Replace an existing client', action: 'Replace client' },
+			{ name: 'Unlink People', value: 'unlinkPeople', description: 'Remove the link between a client and people (max. 500).', action: 'Unlink people from client' },
+			{ name: 'Update Partially', value: 'patch', description: 'Partially update an existing client', action: 'Update client partially' },
 		],
 		default: 'list',
 	},
 
-	// ── Listar ──────────────────────────────────────────────────────────────────
+	// ── List ──────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
 		typeOptions: { minValue: 1 },
 		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
-		description: 'Página a buscar (começa em 1)',
+		description: 'Page to fetch (starts at 1)',
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
 		typeOptions: { minValue: 1, maxValue: 100 },
 		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
-		description: 'Itens por página (máximo 100)',
+		description: 'Items per page (maximum 100)',
 	},
 	{
-		displayName: 'Busca',
+		displayName: 'Search',
 		name: 'search',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
-		description: 'Busca textual por nome, código ou documento',
+		description: 'Text search by name, code, or document',
 	},
 	{
-		displayName: 'Ativo',
+		displayName: 'Active',
 		name: 'clientActive',
 		type: 'options',
 		options: [
-			{ name: 'Todos', value: 'all' },
-			{ name: 'Ativo', value: 'true' },
-			{ name: 'Inativo', value: 'false' },
+			{ name: 'All', value: 'all' },
+			{ name: 'Active', value: 'true' },
+			{ name: 'Inactive', value: 'false' },
 		],
 		default: 'all',
 		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Filtros Adicionais',
+		displayName: 'Additional Filters',
 		name: 'clientListFilters',
 		type: 'collection',
-		placeholder: 'Adicionar filtro',
+		placeholder: 'Add filter',
 		default: {},
 		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
 		options: [
-			{ displayName: 'Atualizado Após', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Sync incremental' },
-			{ displayName: 'Códigos (Separados Por Vírgula)', name: 'codigos', type: 'string', default: '', placeholder: 'A001,A002' },
-			{ displayName: 'Criado Antes', name: 'data_criacao_antes', type: 'dateTime', default: '' },
-			{ displayName: 'Criado Após', name: 'data_criacao_apos', type: 'dateTime', default: '' },
-			{ displayName: 'Documento', name: 'documento', type: 'string', default: '' },
-			{ displayName: 'IDs (Separados Por Vírgula)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Categoria (Separados Por Vírgula)', name: 'ids_categoria', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Etapa (Separados Por Vírgula)', name: 'ids_etapa', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Segmento (Separados Por Vírgula)', name: 'ids_segmento', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Setor De Mercado (Separados Por Vírgula)', name: 'ids_setor_mercado', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Temperatura (Separados Por Vírgula)', name: 'ids_temperatura', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Category IDs (Comma-Separated)', name: 'ids_categoria', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Codes (Comma-Separated)', name: 'codigos', type: 'string', default: '', placeholder: 'A001,A002' },
+			{ displayName: 'Created After', name: 'data_criacao_apos', type: 'dateTime', default: '' },
+			{ displayName: 'Created Before', name: 'data_criacao_antes', type: 'dateTime', default: '' },
+			{ displayName: 'Document', name: 'documento', type: 'string', default: '' },
+			{ displayName: 'IDs (Comma-Separated)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Market Sector IDs (Comma-Separated)', name: 'ids_setor_mercado', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Segment IDs (Comma-Separated)', name: 'ids_segmento', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Stage IDs (Comma-Separated)', name: 'ids_etapa', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Temperature IDs (Comma-Separated)', name: 'ids_temperatura', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Updated After', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Incremental sync' },
 		],
 	},
 
-	// ── Buscar / Substituir / Editar Parcialmente / Excluir ─────────────────────
+	// ── Get / Replace / Update Partially / Delete ─────────────────────
 	{
-		displayName: 'ID Do Cliente',
+		displayName: 'Client ID',
 		name: 'clientId',
 		type: 'number',
 		default: 0,
@@ -94,21 +94,21 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['client'], operation: ['get', 'put', 'patch', 'delete'] } },
 	},
 
-	// ── Criar / Substituir / Editar Parcialmente ────────────────────────────────
+	// ── Create / Replace / Update Partially ────────────────────────────────
 	{
-		displayName: 'Tipo',
+		displayName: 'Type',
 		name: 'clientTipo',
 		type: 'options',
 		options: [
-			{ name: 'Física', value: 'F' },
-			{ name: 'Jurídica', value: 'J' },
-			{ name: 'Estrangeiro', value: 'N' },
+			{ name: 'Individual', value: 'F' },
+			{ name: 'Company', value: 'J' },
+			{ name: 'Foreign', value: 'N' },
 		],
 		default: 'J',
 		displayOptions: { show: { resource: ['client'], operation: ['post', 'put'] } },
 	},
 	{
-		displayName: 'Nome',
+		displayName: 'Name',
 		name: 'clientName',
 		type: 'string',
 		default: '',
@@ -116,60 +116,60 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['client'], operation: ['post', 'put'] } },
 	},
 	{
-		displayName: 'Documento',
+		displayName: 'Document',
 		name: 'clientDocumento',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['client'], operation: ['post', 'put'] } },
-		description: 'CPF, CNPJ ou documento estrangeiro',
+		description: 'CPF, CNPJ, or foreign document',
 	},
 	{
-		displayName: 'Ativo',
+		displayName: 'Active',
 		name: 'clientAtivo',
 		type: 'boolean',
 		default: true,
 		displayOptions: { show: { resource: ['client'], operation: ['post', 'put'] } },
 	},
 	{
-		displayName: 'Campos A Atualizar',
+		displayName: 'Fields to Update',
 		name: 'clientPatchFields',
 		type: 'collection',
-		placeholder: 'Adicionar campo',
+		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['client'], operation: ['patch'] } },
 		options: [
 			{
-				displayName: 'Tipo',
+				displayName: 'Type',
 				name: 'tipo',
 				type: 'options',
 				options: [
-					{ name: 'Física', value: 'F' },
-					{ name: 'Jurídica', value: 'J' },
-					{ name: 'Estrangeiro', value: 'N' },
+					{ name: 'Individual', value: 'F' },
+					{ name: 'Company', value: 'J' },
+					{ name: 'Foreign', value: 'N' },
 				],
 				default: 'J',
 			},
-			{ displayName: 'Nome', name: 'nome', type: 'string', default: '' },
-			{ displayName: 'Documento', name: 'documento', type: 'string', default: '' },
-			{ displayName: 'Ativo', name: 'ativo', type: 'boolean', default: true },
+			{ displayName: 'Name', name: 'nome', type: 'string', default: '' },
+			{ displayName: 'Document', name: 'documento', type: 'string', default: '' },
+			{ displayName: 'Active', name: 'ativo', type: 'boolean', default: true },
 		],
 	},
 
-	// ── Criar em Lote ────────────────────────────────────────────────────────────
+	// ── Create in Bulk ────────────────────────────────────────────────────────────
 	{
-		displayName: 'Clientes (JSON)',
+		displayName: 'Clients (JSON)',
 		name: 'clientsBulkJson',
 		type: 'string',
 		typeOptions: { rows: 6 },
 		default: '[]',
 		required: true,
 		displayOptions: { show: { resource: ['client'], operation: ['postBulk'] } },
-		description: 'Array JSON com até 500 clientes a criar. Ex: [{"tipo":"J","nome":"Empresa","documento":"123","ativo":true}].',
+		description: 'JSON array with up to 500 clients to create. E.g.: [{"tipo":"J","nome":"Empresa","documento":"123","ativo":true}].',
 	},
 
-	// ── Vincular / Desvincular Pessoas ───────────────────────────────────────────
+	// ── Link / Unlink People ───────────────────────────────────────────
 	{
-		displayName: 'ID Do Cliente',
+		displayName: 'Client ID',
 		name: 'clientLinkId',
 		type: 'number',
 		default: 0,
@@ -177,13 +177,13 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['client'], operation: ['linkPeople', 'unlinkPeople'] } },
 	},
 	{
-		displayName: 'IDs Das Pessoas (Separados Por Vírgula)',
+		displayName: 'People IDs (Comma-Separated)',
 		name: 'clientLinkPeopleIds',
 		type: 'string',
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['client'], operation: ['linkPeople', 'unlinkPeople'] } },
-		description: 'Máximo 500 por chamada. Ex: 1,2,3.',
+		description: 'Maximum 500 per call. E.g.: 1,2,3.',
 		placeholder: '1,2,3',
 	},
 ];
@@ -266,7 +266,7 @@ export async function execute(
 
 	if (operation === 'postBulk') {
 		const clientsRaw = this.getNodeParameter('clientsBulkJson', i, '[]') as string;
-		const clientes = parseJson(clientsRaw, this.getNode(), 'Clientes (JSON)');
+		const clientes = parseJson(clientsRaw, this.getNode(), 'Clients (JSON)');
 
 		const { statusCode, body } = await apiRequest.call(this, {
 			method: 'POST',
@@ -345,5 +345,5 @@ export async function execute(
 		return this.helpers.returnJsonArray([{ idCliente, idsPessoas, sucesso: true }]);
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

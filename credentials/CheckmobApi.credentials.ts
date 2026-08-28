@@ -27,16 +27,16 @@ export class CheckmobApi implements ICredentialType {
 			type: 'string',
 			default: '',
 			required: true,
-			placeholder: 'digite o seu login (usuário ou e-mail)',
+			placeholder: 'Enter your login (username or email)',
 		},
 		{
-			displayName: 'Senha',
+			displayName: 'Password',
 			name: 'password',
 			type: 'string',
 			typeOptions: { password: true },
 			default: '',
 			required: true,
-			placeholder: 'digite a sua senha',
+			placeholder: 'Enter your password',
 		},
 		{
 			displayName: 'Access Token',
@@ -65,7 +65,7 @@ export class CheckmobApi implements ICredentialType {
 		})) as { token_acesso?: string; detalhe?: string; titulo?: string };
 
 		if (!response?.token_acesso) {
-			throw new Error(response?.detalhe ?? response?.titulo ?? 'Login falhou. Verifique login e senha.');
+			throw new Error(response?.detalhe ?? response?.titulo ?? 'Login failed. Please check your username and password.');
 		}
 
 		return { accessToken: response.token_acesso };

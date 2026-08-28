@@ -4,19 +4,19 @@ import { apiRequest, assertApiSuccess, toList } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['addressClient'] } },
 		options: [
-			{ name: 'Listar', value: 'get', description: 'Listar endereços do cliente', action: 'Listar enderecos do cliente' },
-			{ name: 'Substituir Principal', value: 'put', description: 'Substituir o endereço principal do cliente', action: 'Substituir endereco do cliente' },
+			{ name: 'List', value: 'get', description: 'List client addresses', action: 'List client addresses' },
+			{ name: 'Replace Main', value: 'put', description: "Replace the client's main address", action: 'Replace client address' },
 		],
 		default: 'get',
 	},
 	{
-		displayName: 'ID Do Cliente',
+		displayName: 'Client ID',
 		name: 'addrClientId',
 		type: 'number',
 		default: 0,
@@ -24,7 +24,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['addressClient'], operation: ['get', 'put'] } },
 	},
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
@@ -32,7 +32,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['addressClient'], operation: ['get'] } },
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
@@ -40,56 +40,56 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['addressClient'], operation: ['get'] } },
 	},
 	{
-		displayName: 'Descrição',
+		displayName: 'Description',
 		name: 'addrDescricao',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Logradouro',
+		displayName: 'Street Address',
 		name: 'address',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Número',
+		displayName: 'Number',
 		name: 'number',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Complemento',
+		displayName: 'Complement',
 		name: 'complement',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Bairro',
+		displayName: 'Neighborhood',
 		name: 'neighborhood',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
 	},
 	{
-		displayName: 'CEP',
+		displayName: 'ZIP Code',
 		name: 'zipCode',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Cidade',
+		displayName: 'City',
 		name: 'city',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Estado',
+		displayName: 'State',
 		name: 'state',
 		type: 'string',
 		default: '',
@@ -162,5 +162,5 @@ export async function execute(
 		return this.helpers.returnJsonArray([body as IDataObject]);
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

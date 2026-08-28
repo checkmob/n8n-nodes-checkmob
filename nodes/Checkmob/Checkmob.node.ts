@@ -66,48 +66,48 @@ const resources: Record<string, ResourceModule> = {
 };
 
 const resourceSelector: INodeProperties = {
-	displayName: 'Recurso',
+	displayName: 'Resource',
 	name: 'resource',
 	type: 'options',
 	noDataExpression: true,
 	options: [
-		{ name: 'Campo Personalizado', value: 'customField', description: 'Listar campos personalizados' },
-		{ name: 'Categoria', value: 'category', description: 'Listar categorias' },
-		{ name: 'Cliente', value: 'client', description: 'Gerenciar clientes' },
-		{ name: 'Deslocamento', value: 'travel', description: 'Consultar quilometragem, custo e aprovação de deslocamentos' },
-		{ name: 'Endereço De Pessoa', value: 'addressPerson', description: 'Buscar e substituir endereço de pessoa' },
-		{ name: 'Endereço Do Cliente', value: 'addressClient', description: 'Listar e substituir endereço do cliente' },
-		{ name: 'Etapa', value: 'step', description: 'Listar etapas' },
-		{ name: 'Grupo', value: 'group', description: 'Gerenciar grupos' },
-		{ name: 'Nota Do Cliente', value: 'noteClient', description: 'Gerenciar notas do cliente' },
-		{ name: 'Objetivo', value: 'objective', description: 'Listar objetivos' },
-		{ name: 'Ordem De Serviço', value: 'serviceOrder', description: 'Gerenciar ordens de serviço' },
-		{ name: 'Pessoa', value: 'person', description: 'Gerenciar pessoas' },
-		{ name: 'Questionário', value: 'checklist', description: 'Consultar questionários e gerenciar vínculos' },
-		{ name: 'Registro', value: 'service', description: 'Gerenciar registros (visitas)' },
-		{ name: 'Respostas De Questionário', value: 'answerChecklist', description: 'Consultar respostas de questionários' },
-		{ name: 'Segmento', value: 'segment', description: 'Gerenciar segmentos' },
-		{ name: 'Setor De Mercado', value: 'marketSector', description: 'Listar setores de mercado' },
-		{ name: 'Status De Serviço', value: 'serviceStatus', description: 'Listar status de serviço' },
-		{ name: 'Temperatura', value: 'temperature', description: 'Listar temperaturas' },
-		{ name: 'Tipo De Serviço', value: 'typeService', description: 'Listar tipos de serviço' },
-		{ name: 'Usuário', value: 'user', description: 'Listar usuários e localização' },
+		{ name: 'Category', value: 'category', description: 'List categories' },
+		{ name: 'Checklist', value: 'checklist', description: 'Query checklists and manage links' },
+		{ name: 'Checklist Answer', value: 'answerChecklist', description: 'Query checklist answers' },
+		{ name: 'Client', value: 'client', description: 'Manage clients' },
+		{ name: 'Client Address', value: 'addressClient', description: 'List and replace the client\'s address' },
+		{ name: 'Client Note', value: 'noteClient', description: 'Manage client notes' },
+		{ name: 'Custom Field', value: 'customField', description: 'List custom fields' },
+		{ name: 'Group', value: 'group', description: 'Manage groups' },
+		{ name: 'Market Sector', value: 'marketSector', description: 'List market sectors' },
+		{ name: 'Objective', value: 'objective', description: 'List objectives' },
+		{ name: 'Person', value: 'person', description: 'Manage people' },
+		{ name: 'Person Address', value: 'addressPerson', description: 'Get and replace a person\'s address' },
+		{ name: 'Record', value: 'service', description: 'Manage records (visits)' },
+		{ name: 'Segment', value: 'segment', description: 'Manage segments' },
+		{ name: 'Service Order', value: 'serviceOrder', description: 'Manage service orders' },
+		{ name: 'Service Status', value: 'serviceStatus', description: 'List service statuses' },
+		{ name: 'Service Type', value: 'typeService', description: 'List service types' },
+		{ name: 'Step', value: 'step', description: 'List steps' },
+		{ name: 'Temperature', value: 'temperature', description: 'List temperatures' },
+		{ name: 'Travel', value: 'travel', description: 'Query travel mileage, cost, and approval' },
+		{ name: 'User', value: 'user', description: 'List users and location' },
 	],
 	default: 'category',
 };
 
 
 const languageSelector: INodeProperties = {
-	displayName: 'Idioma',
+	displayName: 'Language',
 	name: 'language',
 	type: 'options',
 	noDataExpression: true,
 	options: [
-		{ name: 'Português (Pt-BR)', value: 'pt-BR' },
+		{ name: 'Portuguese (Pt-BR)', value: 'pt-BR' },
 		{ name: 'English (en-US)', value: 'en-US' },
 	],
 	default: 'pt-BR',
-	description: 'Idioma das mensagens de erro retornadas pela API',
+	description: 'Language of the error messages returned by the API',
 };
 
 export class Checkmob implements INodeType {
@@ -169,7 +169,7 @@ export class Checkmob implements INodeType {
 				const handler = resources[resource];
 
 				if (!handler) {
-					throw new NodeOperationError(this.getNode(), `Recurso desconhecido: "${resource}"`);
+					throw new NodeOperationError(this.getNode(), `Unknown resource: "${resource}"`);
 				}
 
 				returnData.push(...(await handler.execute.call(this, i, baseUrl, authHeaders)));

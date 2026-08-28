@@ -4,69 +4,69 @@ import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['group'] } },
 		options: [
-			{ name: 'Buscar', value: 'get', description: 'Buscar grupo pelo ID', action: 'Buscar grupo' },
-			{ name: 'Criar', value: 'post', description: 'Criar um novo grupo', action: 'Criar grupo' },
-			{ name: 'Editar', value: 'put', description: 'Substituir um grupo existente', action: 'Editar grupo' },
-			{ name: 'Excluir', value: 'delete', description: 'Excluir um grupo', action: 'Excluir grupo' },
-			{ name: 'Listar', value: 'list', description: 'Listar grupos', action: 'Listar grupos' },
+			{ name: 'Create', value: 'post', description: 'Create a new group', action: 'Create group' },
+			{ name: 'Delete', value: 'delete', description: 'Delete a group', action: 'Delete group' },
+			{ name: 'Get', value: 'get', description: 'Get a group by ID', action: 'Get group' },
+			{ name: 'List', value: 'list', description: 'List groups', action: 'List groups' },
+			{ name: 'Update', value: 'put', description: 'Replace an existing group', action: 'Update group' },
 		],
 		default: 'list',
 	},
 
-	// ── Listar ───────────────────────────────────────────────────────────────────
+	// ── List ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
 		typeOptions: { minValue: 1 },
 		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
-		description: 'Página a buscar (começa em 1)',
+		description: 'Page to fetch (starts at 1)',
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
 		typeOptions: { minValue: 1, maxValue: 100 },
 		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
-		description: 'Itens por página (máximo 100)',
+		description: 'Items per page (maximum 100)',
 	},
 	{
-		displayName: 'Busca',
+		displayName: 'Search',
 		name: 'search',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
-		description: 'Busca textual por nome ou palavra-chave',
+		description: 'Text search by name or keyword',
 	},
 	{
-		displayName: 'IDs Dos Usuários (Separados Por Vírgula)',
+		displayName: 'User IDs (Comma-Separated)',
 		name: 'groupFilterIdsUser',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
-		description: 'Filtrar grupos que contêm estes usuários. Ex: 1,2,3.',
+		description: 'Filter groups that contain these users. E.g.: 1,2,3.',
 		placeholder: '1,2,3',
 	},
 	{
-		displayName: 'Atualizado Após',
+		displayName: 'Updated After',
 		name: 'updatedAfter',
 		type: 'dateTime',
 		default: '',
 		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
-		description: 'Sync incremental: retorna apenas registros atualizados após esta data',
+		description: 'Incremental sync: returns only records updated after this date',
 	},
 
-	// ── Buscar / Editar / Excluir ───────────────────────────────────────────────
+	// ── Get / Update / Delete ───────────────────────────────────────────────
 	{
-		displayName: 'ID Do Grupo',
+		displayName: 'Group ID',
 		name: 'groupId',
 		type: 'number',
 		default: 0,
@@ -74,32 +74,32 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['group'], operation: ['get', 'put', 'delete'] } },
 	},
 
-	// ── Criar / Editar ───────────────────────────────────────────────────────────
+	// ── Create / Update ───────────────────────────────────────────────────────────
 	{
-		displayName: 'Nome',
+		displayName: 'Name',
 		name: 'groupName',
 		type: 'string',
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['group'], operation: ['post', 'put'] } },
-		description: 'Nome do grupo',
+		description: 'Group name',
 	},
 	{
-		displayName: 'IDs Dos Usuários (Separados Por Vírgula)',
+		displayName: 'User IDs (Comma-Separated)',
 		name: 'groupIdsUser',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['group'], operation: ['post', 'put'] } },
-		description: 'IDs dos usuários que fazem parte do grupo. Ex: 1,2,3.',
+		description: 'IDs of the users that belong to the group. E.g.: 1,2,3.',
 		placeholder: '1,2,3',
 	},
 	{
-		displayName: 'ID De Origem',
+		displayName: 'Source ID',
 		name: 'groupIdOrigem',
 		type: 'number',
 		default: 0,
 		displayOptions: { show: { resource: ['group'], operation: ['post', 'put'] } },
-		description: 'ID de origem do grupo (opcional)',
+		description: 'Source ID of the group (optional)',
 	},
 ];
 
@@ -201,5 +201,5 @@ export async function execute(
 		return this.helpers.returnJsonArray([{ id, excluido: true }]);
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

@@ -4,23 +4,23 @@ import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['service'] } },
 		options: [
-			{ name: 'Buscar', value: 'get', description: 'Buscar registro pelo ID', action: 'Buscar registro' },
-			{ name: 'Listar', value: 'list', description: 'Listar registros com filtros', action: 'Listar registros' },
-			{ name: 'Criar Agendado', value: 'post', description: 'Criar um registro (visita) agendado', action: 'Criar registro agendado' },
-			{ name: 'Editar', value: 'put', description: 'Editar campos não sensíveis (campo ausente preserva valor atual)', action: 'Editar registro' },
+			{ name: 'Get', value: 'get', description: 'Get a record by ID', action: 'Get a record' },
+			{ name: 'List', value: 'list', description: 'List records with filters', action: 'List records' },
+			{ name: 'Create Scheduled', value: 'post', description: 'Create a scheduled record (visit)', action: 'Create a scheduled record' },
+			{ name: 'Update', value: 'put', description: 'Update non-sensitive fields (a missing field keeps its current value)', action: 'Update a record' },
 		],
 		default: 'list',
 	},
 
-	// ── Buscar ───────────────────────────────────────────────────────────────────
+	// ── Get ──────────────────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Do Registro',
+		displayName: 'Record ID',
 		name: 'serviceId',
 		type: 'number',
 		default: 0,
@@ -28,9 +28,9 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['service'], operation: ['get'] } },
 	},
 
-	// ── Listar ───────────────────────────────────────────────────────────────────
+	// ── List ─────────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
@@ -38,7 +38,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['service'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
@@ -46,56 +46,55 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['service'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Filtros',
+		displayName: 'Filters',
 		name: 'svcFilters',
 		type: 'collection',
-		placeholder: 'Adicionar filtro',
+		placeholder: 'Add filter',
 		default: {},
 		displayOptions: { show: { resource: ['service'], operation: ['list'] } },
 		options: [
 			{
-				displayName: 'Agendado',
-				name: 'agendado',
-				type: 'options',
-				options: [{ name: 'Todos', value: 'all' }, { name: 'Sim', value: 'true' }, { name: 'Não', value: 'false' }],
-				default: 'all',
-			},
-			{ displayName: 'Agendado Antes', name: 'data_agendada_antes', type: 'dateTime', default: '' },
-			{ displayName: 'Agendado Após', name: 'data_agendada_apos', type: 'dateTime', default: '' },
-			{
-				displayName: 'Ativo',
+				displayName: 'Active',
 				name: 'ativo',
 				type: 'options',
-				options: [{ name: 'Todos', value: 'all' }, { name: 'Sim', value: 'true' }, { name: 'Não', value: 'false' }],
+				options: [{ name: 'All', value: 'all' }, { name: 'Yes', value: 'true' }, { name: 'No', value: 'false' }],
 				default: 'all',
 			},
-			{ displayName: 'Atualizado Após', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Sync incremental' },
-			{ displayName: 'Busca', name: 'busca', type: 'string', default: '' },
-			{ displayName: 'Código', name: 'codigo', type: 'number', default: 0 },
+			{ displayName: 'Client IDs (Comma-Separated)', name: 'ids_cliente', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Code', name: 'codigo', type: 'number', default: 0 },
 			{
-				displayName: 'Concluído',
+				displayName: 'Completed',
 				name: 'concluido',
 				type: 'options',
-				options: [{ name: 'Todos', value: 'all' }, { name: 'Sim', value: 'true' }, { name: 'Não', value: 'false' }],
+				options: [{ name: 'All', value: 'all' }, { name: 'Yes', value: 'true' }, { name: 'No', value: 'false' }],
 				default: 'all',
 			},
-			{ displayName: 'ID Da Ordem De Serviço', name: 'id_ordem_servico', type: 'number', default: 0 },
-			{ displayName: 'IDs (Separados Por Vírgula)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Cliente (Separados Por Vírgula)', name: 'ids_cliente', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Grupo (Separados Por Vírgula)', name: 'ids_grupo', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Objetivo (Separados Por Vírgula)', name: 'ids_objetivo', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Segmento (Separados Por Vírgula)', name: 'ids_segmento', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Status (Separados Por Vírgula)', name: 'ids_status', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Usuário (Separados Por Vírgula)', name: 'ids_usuario', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'Realizado Antes', name: 'data_realizacao_antes', type: 'dateTime', default: '' },
-			{ displayName: 'Realizado Após', name: 'data_realizacao_apos', type: 'dateTime', default: '' },
-			
+			{ displayName: 'Completed After', name: 'data_realizacao_apos', type: 'dateTime', default: '' },
+			{ displayName: 'Completed Before', name: 'data_realizacao_antes', type: 'dateTime', default: '' },
+			{ displayName: 'Goal IDs (Comma-Separated)', name: 'ids_objetivo', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Group IDs (Comma-Separated)', name: 'ids_grupo', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'IDs (Comma-Separated)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
+			{
+				displayName: 'Scheduled',
+				name: 'agendado',
+				type: 'options',
+				options: [{ name: 'All', value: 'all' }, { name: 'Yes', value: 'true' }, { name: 'No', value: 'false' }],
+				default: 'all',
+			},
+			{ displayName: 'Scheduled After', name: 'data_agendada_apos', type: 'dateTime', default: '' },
+			{ displayName: 'Scheduled Before', name: 'data_agendada_antes', type: 'dateTime', default: '' },
+			{ displayName: 'Search', name: 'busca', type: 'string', default: '' },
+			{ displayName: 'Segment IDs (Comma-Separated)', name: 'ids_segmento', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Service Order ID', name: 'id_ordem_servico', type: 'number', default: 0 },
+			{ displayName: 'Status IDs (Comma-Separated)', name: 'ids_status', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Updated After', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Incremental sync' },
+			{ displayName: 'User IDs (Comma-Separated)', name: 'ids_usuario', type: 'string', default: '', placeholder: '1,2,3' },
 		],
 	},
 
-	// ── Criar Agendado ───────────────────────────────────────────────────────────
+	// ── Create Scheduled ─────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Do Cliente',
+		displayName: 'Client ID',
 		name: 'svcIdClient',
 		type: 'number',
 		default: 0,
@@ -103,7 +102,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['service'], operation: ['post'] } },
 	},
 	{
-		displayName: 'ID Do Usuário',
+		displayName: 'User ID',
 		name: 'svcIdUser',
 		type: 'number',
 		default: 0,
@@ -111,7 +110,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['service'], operation: ['post'] } },
 	},
 	{
-		displayName: 'Início Esperado',
+		displayName: 'Expected Start',
 		name: 'svcDataInicioEsperada',
 		type: 'dateTime',
 		default: '',
@@ -119,7 +118,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['service'], operation: ['post'] } },
 	},
 	{
-		displayName: 'Conclusão Esperada',
+		displayName: 'Expected Completion',
 		name: 'svcDataConclusaoEsperada',
 		type: 'dateTime',
 		default: '',
@@ -127,7 +126,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['service'], operation: ['post'] } },
 	},
 	{
-		displayName: 'Ativo',
+		displayName: 'Active',
 		name: 'svcAtivo',
 		type: 'boolean',
 		default: true,
@@ -136,25 +135,25 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['service'], operation: ['post'] } },
 	},
 	{
-		displayName: 'Campos Opcionais',
+		displayName: 'Optional Fields',
 		name: 'svcPostOptional',
 		type: 'collection',
-		placeholder: 'Adicionar campo',
+		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['service'], operation: ['post'] } },
 		options: [
-			{ displayName: 'ID Da Equipe', name: 'id_equipe', type: 'number', default: 0 },
-			{ displayName: 'ID Da Ordem De Serviço', name: 'id_ordem_servico', type: 'number', default: 0 },
-			{ displayName: 'ID Do Contato', name: 'id_contato', type: 'number', default: 0 },
-			{ displayName: 'ID Do Objetivo', name: 'id_objetivo', type: 'number', default: 0 },
-			{ displayName: 'ID Do Segmento', name: 'id_segmento', type: 'number', default: 0 },			
-			{ displayName: 'Instruções', name: 'instrucoes', type: 'string', default: '' },
+			{ displayName: 'Contact ID', name: 'id_contato', type: 'number', default: 0 },
+			{ displayName: 'Goal ID', name: 'id_objetivo', type: 'number', default: 0 },
+			{ displayName: 'Instructions', name: 'instrucoes', type: 'string', default: '' },
+			{ displayName: 'Segment ID', name: 'id_segmento', type: 'number', default: 0 },
+			{ displayName: 'Service Order ID', name: 'id_ordem_servico', type: 'number', default: 0 },
+			{ displayName: 'Team ID', name: 'id_equipe', type: 'number', default: 0 },
 		],
 	},
 
-	// ── Editar ───────────────────────────────────────────────────────────────────
+	// ── Update ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Do Registro',
+		displayName: 'Record ID',
 		name: 'serviceEditId',
 		type: 'number',
 		default: 0,
@@ -162,20 +161,20 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['service'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Campos A Atualizar',
+		displayName: 'Fields to Update',
 		name: 'svcPutFields',
 		type: 'collection',
-		placeholder: 'Adicionar campo',
+		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['service'], operation: ['put'] } },
 		options: [
-			{ displayName: 'ID Do Cliente', name: 'id_cliente', type: 'number', default: 0 },
-			{ displayName: 'ID Do Objetivo', name: 'id_objetivo', type: 'number', default: 0 },
-			{ displayName: 'Início (Checkin)', name: 'data_inicio', type: 'dateTime', default: '' },
+			{ displayName: 'Client ID', name: 'id_cliente', type: 'number', default: 0 },
+			{ displayName: 'Completion (Check-Out)', name: 'data_realizacao', type: 'dateTime', default: '' },
+			{ displayName: 'Goal ID', name: 'id_objetivo', type: 'number', default: 0 },
 			{ displayName: 'Latitude', name: 'latitude', type: 'number', default: 0 },
 			{ displayName: 'Longitude', name: 'longitude', type: 'number', default: 0 },
-			{ displayName: 'Observação', name: 'observacao', type: 'string', default: '' },
-			{ displayName: 'Realização (Checkout)', name: 'data_realizacao', type: 'dateTime', default: '' },
+			{ displayName: 'Note', name: 'observacao', type: 'string', default: '' },
+			{ displayName: 'Start (Check-In)', name: 'data_inicio', type: 'dateTime', default: '' },
 		],
 	},
 ];
@@ -276,5 +275,5 @@ export async function execute(
 		return this.helpers.returnJsonArray([body as IDataObject]);
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

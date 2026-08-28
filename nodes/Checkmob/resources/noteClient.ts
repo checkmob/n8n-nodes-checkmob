@@ -4,23 +4,23 @@ import { apiRequest, assertApiSuccess, toList } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['noteClient'] } },
 		options: [
-			{ name: 'Listar', value: 'list', description: 'Listar notas do cliente', action: 'Listar notas do cliente' },
-			{ name: 'Criar', value: 'post', description: 'Criar uma nova nota', action: 'Criar nota do cliente' },
-			{ name: 'Editar', value: 'put', description: 'Editar uma nota existente', action: 'Editar nota do cliente' },
-			{ name: 'Excluir', value: 'delete', description: 'Excluir uma nota pelo ID', action: 'Excluir nota do cliente' },
+			{ name: 'List', value: 'list', description: 'List client notes', action: 'List client notes' },
+			{ name: 'Create', value: 'post', description: 'Create a new note', action: 'Create client note' },
+			{ name: 'Update', value: 'put', description: 'Update an existing note', action: 'Update client note' },
+			{ name: 'Delete', value: 'delete', description: 'Delete a note by ID', action: 'Delete client note' },
 		],
 		default: 'list',
 	},
 
-	// ── Listar ───────────────────────────────────────────────────────────────────
+	// ── List ─────────────────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Do Cliente',
+		displayName: 'Client ID',
 		name: 'noteClientId',
 		type: 'number',
 		default: 0,
@@ -28,7 +28,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['noteClient'], operation: ['list', 'post'] } },
 	},
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
@@ -36,7 +36,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['noteClient'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
@@ -44,9 +44,9 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['noteClient'], operation: ['list'] } },
 	},
 
-	// ── Criar ────────────────────────────────────────────────────────────────────
+	// ── Create ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Nota',
+		displayName: 'Note',
 		name: 'noteText',
 		type: 'string',
 		typeOptions: { rows: 3 },
@@ -55,9 +55,9 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['noteClient'], operation: ['post', 'put'] } },
 	},
 
-	// ── Editar / Excluir ─────────────────────────────────────────────────────────
+	// ── Update / Delete ──────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Da Nota',
+		displayName: 'Note ID',
 		name: 'noteId',
 		type: 'number',
 		default: 0,
@@ -133,5 +133,5 @@ export async function execute(
 		return this.helpers.returnJsonArray([{ id, excluido: true }]);
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

@@ -4,20 +4,20 @@ import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['user'] } },
 		options: [
-			{ name: 'Buscar', value: 'get', description: 'Buscar um usuário pelo ID', action: 'Buscar usuario' },
-			{ name: 'Listar', value: 'list', description: 'Listar usuários', action: 'Listar usuarios' },
-			{ name: 'Localizações', value: 'location', description: 'Buscar as localizações registradas de um usuário', action: 'Buscar localizacoes do usuario' },
+			{ name: 'Get', value: 'get', description: 'Get a user by ID', action: 'Get user' },
+			{ name: 'List', value: 'list', description: 'List users', action: 'List users' },
+			{ name: 'Locations', value: 'location', description: 'Get the recorded locations of a user', action: 'Get user locations' },
 		],
 		default: 'list',
 	},
 	{
-		displayName: 'ID Do Usuário',
+		displayName: 'User ID',
 		name: 'idUser',
 		type: 'number',
 		default: 0,
@@ -25,7 +25,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['user'], operation: ['get', 'location'] } },
 	},
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
@@ -33,7 +33,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['user'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
@@ -41,34 +41,34 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['user'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Busca',
+		displayName: 'Search',
 		name: 'search',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['user'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Filtros Adicionais',
+		displayName: 'Additional Filters',
 		name: 'userListFilters',
 		type: 'collection',
-		placeholder: 'Adicionar filtro',
+		placeholder: 'Add Filter',
 		default: {},
 		displayOptions: { show: { resource: ['user'], operation: ['list'] } },
 		options: [
 			{
-				displayName: 'Ativo',
+				displayName: 'Active',
 				name: 'ativo',
 				type: 'options',
 				options: [
-					{ name: 'Todos', value: 'all' },
-					{ name: 'Ativo', value: 'true' },
-					{ name: 'Inativo', value: 'false' },
+					{ name: 'All', value: 'all' },
+					{ name: 'Active', value: 'true' },
+					{ name: 'Inactive', value: 'false' },
 				],
 				default: 'all',
 			},
-			{ displayName: 'IDs (Separados Por Vírgula)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Grupo (Separados Por Vírgula)', name: 'ids_grupo', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'ID Do Perfil', name: 'id_perfil', type: 'number', default: 0 },
+			{ displayName: 'IDs (Comma-Separated)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Group IDs (Comma-Separated)', name: 'ids_grupo', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Profile ID', name: 'id_perfil', type: 'number', default: 0 },
 		],
 	},
 ];
@@ -131,5 +131,5 @@ export async function execute(
 		return this.helpers.returnJsonArray(Array.isArray(body) ? (body as IDataObject[]) : [body as IDataObject]);
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

@@ -4,27 +4,27 @@ import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['person'] } },
 		options: [
-			{ name: 'Ativar/Inativar Em Lote', value: 'status', description: 'Ativar ou inativar pessoas em lote (máx. 500).', action: 'Ativar ou inativar pessoas' },
-			{ name: 'Buscar', value: 'get', description: 'Buscar uma pessoa pelo ID', action: 'Buscar pessoa' },
-			{ name: 'Criar', value: 'post', description: 'Criar uma nova pessoa', action: 'Criar pessoa' },
-			{ name: 'Desvincular Clientes', value: 'unlinkClients', description: 'Desfazer vínculo entre pessoa e clientes (máx. 500).', action: 'Desvincular pessoa de clientes' },
-			{ name: 'Editar', value: 'put', description: 'Editar uma pessoa existente', action: 'Editar pessoa' },
-			{ name: 'Excluir', value: 'delete', description: 'Excluir uma pessoa', action: 'Excluir pessoa' },
-			{ name: 'Listar', value: 'list', description: 'Listar pessoas/contatos', action: 'Listar pessoas' },
-			{ name: 'Vincular Clientes', value: 'linkClients', description: 'Vincular uma pessoa a um ou mais clientes (máx. 500).', action: 'Vincular pessoa a clientes' },
+			{ name: 'Activate/Deactivate in Bulk', value: 'status', description: 'Activate or deactivate people in bulk (max. 500).', action: 'Activate or deactivate people' },
+			{ name: 'Create', value: 'post', description: 'Create a new person', action: 'Create person' },
+			{ name: 'Delete', value: 'delete', description: 'Delete a person', action: 'Delete person' },
+			{ name: 'Get', value: 'get', description: 'Get a person by ID', action: 'Get person' },
+			{ name: 'Link Clients', value: 'linkClients', description: 'Link a person to one or more clients (max. 500).', action: 'Link person to clients' },
+			{ name: 'List', value: 'list', description: 'List people/contacts', action: 'List people' },
+			{ name: 'Unlink Clients', value: 'unlinkClients', description: 'Remove the link between a person and clients (max. 500).', action: 'Unlink person from clients' },
+			{ name: 'Update', value: 'put', description: 'Update an existing person', action: 'Update person' },
 		],
 		default: 'list',
 	},
 
-	// ── Listar ───────────────────────────────────────────────────────────────────
+	// ── List ─────────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
@@ -32,7 +32,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
@@ -40,42 +40,42 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Busca',
+		displayName: 'Search',
 		name: 'search',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Ativo',
+		displayName: 'Active',
 		name: 'personActive',
 		type: 'options',
 		options: [
-			{ name: 'Todos', value: 'all' },
-			{ name: 'Ativo', value: 'true' },
-			{ name: 'Inativo', value: 'false' },
+			{ name: 'All', value: 'all' },
+			{ name: 'Active', value: 'true' },
+			{ name: 'Inactive', value: 'false' },
 		],
 		default: 'all',
 		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Filtros Adicionais',
+		displayName: 'Additional Filters',
 		name: 'personListFilters',
 		type: 'collection',
-		placeholder: 'Adicionar filtro',
+		placeholder: 'Add filter',
 		default: {},
 		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
 		options: [
 			{ displayName: 'Email', name: 'email', type: 'string', default: '', placeholder: 'name@email.com' },
-			{ displayName: 'IDs (Separados Por Vírgula)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Clientes (Separados Por Vírgula)', name: 'ids_clientes', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'Atualizado Após', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Sync incremental' },
+			{ displayName: 'IDs (Comma-Separated)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Client IDs (Comma-Separated)', name: 'ids_clientes', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Updated After', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Incremental sync' },
 		],
 	},
 
-	// ── Buscar / Excluir ─────────────────────────────────────────────────────────
+	// ── Get / Delete ─────────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Da Pessoa',
+		displayName: 'Person ID',
 		name: 'personId',
 		type: 'number',
 		default: 0,
@@ -83,9 +83,9 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['person'], operation: ['get', 'delete'] } },
 	},
 
-	// ── Criar ────────────────────────────────────────────────────────────────────
+	// ── Create ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Nome',
+		displayName: 'Name',
 		name: 'personName',
 		type: 'string',
 		default: '',
@@ -93,23 +93,23 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['person'], operation: ['post'] } },
 	},
 	{
-		displayName: 'Campos Adicionais',
+		displayName: 'Additional Fields',
 		name: 'personPostFields',
 		type: 'collection',
-		placeholder: 'Adicionar campo',
+		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['person'], operation: ['post'] } },
 		options: [
 			{ displayName: 'Email', name: 'email', type: 'string', default: '', placeholder: 'name@email.com' },
-			{ displayName: 'Telefone', name: 'telefone', type: 'string', default: '' },
-			{ displayName: 'Celular', name: 'celular', type: 'string', default: '' },
-			{ displayName: 'IDs De Clientes (Separados Por Vírgula)', name: 'idsClientes', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Phone', name: 'telefone', type: 'string', default: '' },
+			{ displayName: 'Mobile Phone', name: 'celular', type: 'string', default: '' },
+			{ displayName: 'Client IDs (Comma-Separated)', name: 'idsClientes', type: 'string', default: '', placeholder: '1,2,3' },
 		],
 	},
 
-	// ── Editar ───────────────────────────────────────────────────────────────────
+	// ── Update ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Da Pessoa',
+		displayName: 'Person ID',
 		name: 'personEditId',
 		type: 'number',
 		default: 0,
@@ -117,34 +117,34 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['person'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Campos A Atualizar',
+		displayName: 'Fields to Update',
 		name: 'personPutFields',
 		type: 'collection',
-		placeholder: 'Adicionar campo',
+		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['person'], operation: ['put'] } },
 		options: [
-			{ displayName: 'Ativo', name: 'ativo', type: 'boolean', default: true },
-			{ displayName: 'Celular', name: 'celular', type: 'string', default: '' },
+			{ displayName: 'Active', name: 'ativo', type: 'boolean', default: true },
 			{ displayName: 'Email', name: 'email', type: 'string', default: '', placeholder: 'name@email.com' },
-			{ displayName: 'Nome', name: 'nome', type: 'string', default: '' },
-			{ displayName: 'Telefone', name: 'telefone', type: 'string', default: '' },	
+			{ displayName: 'Mobile Phone', name: 'celular', type: 'string', default: '' },
+			{ displayName: 'Name', name: 'nome', type: 'string', default: '' },
+			{ displayName: 'Phone', name: 'telefone', type: 'string', default: '' },
 		],
 	},
 
-	// ── Ativar/Inativar em Lote ──────────────────────────────────────────────────
+	// ── Activate/Deactivate in Bulk ──────────────────────────────────────────────
 	{
-		displayName: 'IDs Das Pessoas (Separados Por Vírgula)',
+		displayName: 'Person IDs (Comma-Separated)',
 		name: 'personStatusIds',
 		type: 'string',
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['person'], operation: ['status'] } },
-		description: 'Máximo 500 por chamada. Ex: 1,2,3.',
+		description: 'Maximum 500 per call. E.g.: 1,2,3.',
 		placeholder: '1,2,3',
 	},
 	{
-		displayName: 'Ativo',
+		displayName: 'Active',
 		name: 'personStatusAtivo',
 		type: 'boolean',
 		default: true,
@@ -152,9 +152,9 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['person'], operation: ['status'] } },
 	},
 
-	// ── Vincular / Desvincular Clientes ──────────────────────────────────────────
+	// ── Link / Unlink Clients ────────────────────────────────────────────────────
 	{
-		displayName: 'ID Da Pessoa',
+		displayName: 'Person ID',
 		name: 'personLinkId',
 		type: 'number',
 		default: 0,
@@ -162,13 +162,13 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['person'], operation: ['linkClients', 'unlinkClients'] } },
 	},
 	{
-		displayName: 'IDs Dos Clientes (Separados Por Vírgula)',
+		displayName: 'Client IDs (Comma-Separated)',
 		name: 'personLinkClientIds',
 		type: 'string',
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['person'], operation: ['linkClients', 'unlinkClients'] } },
-		description: 'Máximo 500 por chamada. Ex: 1,2,3.',
+		description: 'Maximum 500 per call. E.g.: 1,2,3.',
 		placeholder: '1,2,3',
 	},
 ];
@@ -270,7 +270,7 @@ export async function execute(
 		});
 		assertApiSuccess(statusCode, body, this.getNode());
 
-		return this.helpers.returnJsonArray([{ id, excluido: true }]);
+		return this.helpers.returnJsonArray([{ id, deleted: true }]);
 	}
 
 	if (operation === 'status') {
@@ -285,7 +285,7 @@ export async function execute(
 		});
 		assertApiSuccess(statusCode, body, this.getNode());
 
-		return this.helpers.returnJsonArray([{ idsPessoas, ativo, sucesso: true }]);
+		return this.helpers.returnJsonArray([{ idsPessoas, ativo, success: true }]);
 	}
 
 	if (operation === 'linkClients' || operation === 'unlinkClients') {
@@ -301,8 +301,8 @@ export async function execute(
 		});
 		assertApiSuccess(statusCode, body, this.getNode());
 
-		return this.helpers.returnJsonArray([{ idPessoa, idsClientes, sucesso: true }]);
+		return this.helpers.returnJsonArray([{ idPessoa, idsClientes, success: true }]);
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

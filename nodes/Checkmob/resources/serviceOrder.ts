@@ -4,27 +4,27 @@ import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['serviceOrder'] } },
 		options: [
-			{ name: 'Alterar Status', value: 'changeStatus', description: 'Alterar status de uma OS', action: 'Alterar status de OS' },
-			{ name: 'Buscar', value: 'get', description: 'Buscar ordem de serviço pelo ID', action: 'Buscar ordem de servico' },
-			{ name: 'Criar', value: 'post', description: 'Criar ordem de serviço', action: 'Criar ordem de servico' },
-			{ name: 'Excluir', value: 'delete', description: 'Excluir uma ordem de serviço', action: 'Excluir ordem de servico' },
-			{ name: 'Excluir Em Lote', value: 'deleteBulk', description: 'Excluir ordens de serviço em lote pelos IDs (máx. 500).', action: 'Excluir ordens de servico em lote' },
-			{ name: 'Listar', value: 'list', description: 'Listar ordens de serviço', action: 'Listar ordens de servico' },
-			{ name: 'Listar Status', value: 'listStatus', description: 'Listar status disponíveis das OS', action: 'Listar status de OS' },
-			{ name: 'Substituir', value: 'put', description: 'Substituir ordem de serviço (campo ausente preserva valor atual)', action: 'Substituir ordem de servico' },
+			{ name: 'Change Status', value: 'changeStatus', description: 'Change the status of a service order', action: 'Change status of service order' },
+			{ name: 'Create', value: 'post', description: 'Create a service order', action: 'Create service order' },
+			{ name: 'Delete', value: 'delete', description: 'Delete a service order', action: 'Delete service order' },
+			{ name: 'Delete Bulk', value: 'deleteBulk', description: 'Delete service orders in bulk by IDs (max. 500).', action: 'Delete service orders in bulk' },
+			{ name: 'Get', value: 'get', description: 'Get a service order by ID', action: 'Get service order' },
+			{ name: 'List', value: 'list', description: 'List service orders', action: 'List service orders' },
+			{ name: 'List Status', value: 'listStatus', description: 'List available statuses for service orders', action: 'List service order statuses' },
+			{ name: 'Replace', value: 'put', description: 'Replace a service order (missing field preserves current value)', action: 'Replace service order' },
 		],
 		default: 'list',
 	},
 
-	// ── Listar ───────────────────────────────────────────────────────────────────
+	// ── List ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
@@ -32,7 +32,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
@@ -40,57 +40,57 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Busca',
+		displayName: 'Search',
 		name: 'search',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Filtros Adicionais',
+		displayName: 'Additional Filters',
 		name: 'soListFilters',
 		type: 'collection',
-		placeholder: 'Adicionar filtro',
+		placeholder: 'Add Filter',
 		default: {},
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['list'] } },
 		options: [
-			{ displayName: 'Agendada Antes', name: 'data_agendada_antes', type: 'dateTime', default: '' },
-			{ displayName: 'Agendada Após', name: 'data_agendada_apos', type: 'dateTime', default: '' },
 			{
-				displayName: 'Ativa',
+				displayName: 'Active',
 				name: 'ativa',
 				type: 'options',
-				options: [{ name: 'Todas', value: 'all' }, { name: 'Sim', value: 'true' }, { name: 'Não', value: 'false' }],
+				options: [{ name: 'All', value: 'all' }, { name: 'Yes', value: 'true' }, { name: 'No', value: 'false' }],
 				default: 'all',
 			},
-			{ displayName: 'Atualizada Após', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Sync incremental' },
-			{ displayName: 'Código', name: 'codigo', type: 'number', default: 0 },
+			{ displayName: 'Code', name: 'codigo', type: 'number', default: 0 },
 			{
-				displayName: 'Concluída',
+				displayName: 'Completed',
 				name: 'concluida',
 				type: 'options',
-				options: [{ name: 'Todas', value: 'all' }, { name: 'Sim', value: 'true' }, { name: 'Não', value: 'false' }],
+				options: [{ name: 'All', value: 'all' }, { name: 'Yes', value: 'true' }, { name: 'No', value: 'false' }],
 				default: 'all',
 			},
-			{ displayName: 'Criada Antes', name: 'data_criacao_antes', type: 'dateTime', default: '' },
-			{ displayName: 'Criada Após', name: 'data_criacao_apos', type: 'dateTime', default: '' },
-			{ displayName: 'ID Do Cliente', name: 'id_cliente', type: 'number', default: 0 },
-			{ displayName: 'IDs (Separados Por Vírgula)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Cliente (Separados Por Vírgula)', name: 'ids_cliente', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Contato (Separados Por Vírgula)', name: 'ids_contato', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Grupo (Separados Por Vírgula)', name: 'ids_grupo', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Segmento (Separados Por Vírgula)', name: 'ids_segmento', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Status (Separados Por Vírgula)', name: 'ids_status', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Tipo De Serviço (Separados Por Vírgula)', name: 'ids_tipo_servico', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'IDs De Usuário (Separados Por Vírgula)', name: 'ids_usuario', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'Prioridade Máxima', name: 'prioridade_max', type: 'number', default: 0 },
-			{ displayName: 'Prioridade Mínima', name: 'prioridade_min', type: 'number', default: 0 },
+			{ displayName: 'Contact IDs (Comma-Separated)', name: 'ids_contato', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Created After', name: 'data_criacao_apos', type: 'dateTime', default: '' },
+			{ displayName: 'Created Before', name: 'data_criacao_antes', type: 'dateTime', default: '' },
+			{ displayName: 'Customer ID', name: 'id_cliente', type: 'number', default: 0 },
+			{ displayName: 'Customer IDs (Comma-Separated)', name: 'ids_cliente', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Group IDs (Comma-Separated)', name: 'ids_grupo', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'IDs (Comma-Separated)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Maximum Priority', name: 'prioridade_max', type: 'number', default: 0 },
+			{ displayName: 'Minimum Priority', name: 'prioridade_min', type: 'number', default: 0 },
+			{ displayName: 'Scheduled After', name: 'data_agendada_apos', type: 'dateTime', default: '' },
+			{ displayName: 'Scheduled Before', name: 'data_agendada_antes', type: 'dateTime', default: '' },
+			{ displayName: 'Segment IDs (Comma-Separated)', name: 'ids_segmento', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Service Type IDs (Comma-Separated)', name: 'ids_tipo_servico', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Status IDs (Comma-Separated)', name: 'ids_status', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Updated After', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Incremental sync' },
+			{ displayName: 'User IDs (Comma-Separated)', name: 'ids_usuario', type: 'string', default: '', placeholder: '1,2,3' },
 		],
 	},
 
-	// ── Buscar / Excluir ─────────────────────────────────────────────────────────
+	// ── Get / Delete ─────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Da OS',
+		displayName: 'Service Order ID',
 		name: 'soId',
 		type: 'number',
 		default: 0,
@@ -98,9 +98,9 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['get', 'delete'] } },
 	},
 
-	// ── Criar / Substituir ───────────────────────────────────────────────────────
+	// ── Create / Replace ───────────────────────────────────────────────────────
 	{
-		displayName: 'ID Da OS',
+		displayName: 'Service Order ID',
 		name: 'soPutId',
 		type: 'number',
 		default: 0,
@@ -108,7 +108,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['put'] } },
 	},
 	{
-		displayName: 'ID Do Cliente',
+		displayName: 'Customer ID',
 		name: 'soIdCliente',
 		type: 'number',
 		default: 0,
@@ -116,36 +116,36 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['post', 'put'] } },
 	},
 	{
-		displayName: 'Nome',
+		displayName: 'Name',
 		name: 'soName',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['post', 'put'] } },
 	},
 	{
-		displayName: 'Campos Opcionais',
+		displayName: 'Optional Fields',
 		name: 'soOptional',
 		type: 'collection',
-		placeholder: 'Adicionar campo',
+		placeholder: 'Add Field',
 		default: {},
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['post', 'put'] } },
 		options: [
-			{ displayName: 'Ativa', name: 'ativa', type: 'boolean', default: true },
-			{ displayName: 'Comentário', name: 'comentario', type: 'string', default: '' },
-			{ displayName: 'Concluída', name: 'concluida', type: 'boolean', default: false },
-			{ displayName: 'Criada Para Mim', name: 'criada_para_mim', type: 'boolean', default: false },
-			{ displayName: 'Data Agendada', name: 'data_agendada', type: 'dateTime', default: '' },
-			{ displayName: 'Exige Checklist De Conclusão', name: 'exige_checklist_conclusao', type: 'boolean', default: false },
-			{ displayName: 'ID Do Contato', name: 'id_contato', type: 'number', default: 0 },
-			{ displayName: 'ID Do Grupo', name: 'id_grupo', type: 'number', default: 0 },
-			{ displayName: 'ID Do Segmento', name: 'id_segmento', type: 'number', default: 0 },
-			{ displayName: 'ID Do Tipo De Serviço', name: 'id_tipo_servico', type: 'number', default: 0 },
-			{ displayName: 'Início Agendado', name: 'inicio_agendado', type: 'dateTime', default: '' },
-			{ displayName: 'Prioridade', name: 'prioridade', type: 'number', default: 0 },
+			{ displayName: 'Active', name: 'ativa', type: 'boolean', default: true },
+			{ displayName: 'Comment', name: 'comentario', type: 'string', default: '' },
+			{ displayName: 'Completed', name: 'concluida', type: 'boolean', default: false },
+			{ displayName: 'Contact ID', name: 'id_contato', type: 'number', default: 0 },
+			{ displayName: 'Created for Me', name: 'criada_para_mim', type: 'boolean', default: false },
+			{ displayName: 'Group ID', name: 'id_grupo', type: 'number', default: 0 },
+			{ displayName: 'Priority', name: 'prioridade', type: 'number', default: 0 },
+			{ displayName: 'Requires Completion Checklist', name: 'exige_checklist_conclusao', type: 'boolean', default: false },
+			{ displayName: 'Scheduled Date', name: 'data_agendada', type: 'dateTime', default: '' },
+			{ displayName: 'Scheduled Start', name: 'inicio_agendado', type: 'dateTime', default: '' },
+			{ displayName: 'Segment ID', name: 'id_segmento', type: 'number', default: 0 },
+			{ displayName: 'Service Type ID', name: 'id_tipo_servico', type: 'number', default: 0 },
 		],
 	},
 	{
-		displayName: 'IDs Dos Usuários (Separados Por Vírgula)',
+		displayName: 'User IDs (Comma-Separated)',
 		name: 'soIdsUsers',
 		type: 'string',
 		default: '',
@@ -153,21 +153,21 @@ export const description: INodeProperties[] = [
 		placeholder: '1,2,3',
 	},
 
-	// ── Excluir em Lote ──────────────────────────────────────────────────────────
+	// ── Delete Bulk ──────────────────────────────────────────────────────────
 	{
-		displayName: 'IDs Das OS (Separados Por Vírgula)',
+		displayName: 'Service Order IDs (Comma-Separated)',
 		name: 'soDeleteIds',
 		type: 'string',
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['deleteBulk'] } },
-		description: 'Máximo 500 por chamada. Ex: 1,2,3.',
+		description: 'Maximum 500 per call. E.g.: 1,2,3.',
 		placeholder: '1,2,3',
 	},
 
-	// ── Alterar Status ───────────────────────────────────────────────────────────
+	// ── Change Status ───────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Da OS',
+		displayName: 'Service Order ID',
 		name: 'soStatusId',
 		type: 'number',
 		default: 0,
@@ -175,7 +175,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['changeStatus'] } },
 	},
 	{
-		displayName: 'ID Do Status',
+		displayName: 'Status ID',
 		name: 'soIdStatus',
 		type: 'number',
 		default: 0,
@@ -308,7 +308,7 @@ export async function execute(
 		});
 		assertApiSuccess(statusCode, body, this.getNode());
 
-		return this.helpers.returnJsonArray([{ id, excluido: true }]);
+		return this.helpers.returnJsonArray([{ id, deleted: true }]);
 	}
 
 	if (operation === 'deleteBulk') {
@@ -326,5 +326,5 @@ export async function execute(
 		return this.helpers.returnJsonArray(Array.isArray(resultados) ? (resultados as IDataObject[]) : [body as IDataObject]);
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

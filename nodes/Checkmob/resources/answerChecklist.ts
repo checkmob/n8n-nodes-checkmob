@@ -4,22 +4,22 @@ import { apiRequest, assertApiSuccess, toList } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['answerChecklist'] } },
 		options: [
-			{ name: 'Buscar Por Registro', value: 'get', description: 'Buscar respostas pelo ID do registro. 404 significa que não houve questionário nesta visita (não é erro de integração).', action: 'Buscar respostas por registro' },
-			{ name: 'Buscar Por Ordem De Serviço', value: 'getByServiceOrder', description: 'Buscar respostas pelo ID da ordem de serviço', action: 'Buscar respostas por OS' },
-			{ name: 'Listar', value: 'list', description: 'Listar questionários respondidos (resumo)', action: 'Listar questionarios respondidos' },
+			{ name: 'Get by Record', value: 'get', description: 'Get answers by record ID. A 404 means there was no questionnaire for this visit (not an integration error).', action: 'Get answers by record' },
+			{ name: 'Get by Service Order', value: 'getByServiceOrder', description: 'Get answers by service order ID', action: 'Get answers by service order' },
+			{ name: 'List', value: 'list', description: 'List answered questionnaires (summary)', action: 'List answered questionnaires' },
 		],
 		default: 'list',
 	},
 
-	// ── Buscar por Registro ───────────────────────────────────────────────────────
+	// ── Get by Record ───────────────────────────────────────────────────────
 	{
-		displayName: 'ID Do Registro',
+		displayName: 'Record ID',
 		name: 'acIdService',
 		type: 'number',
 		default: 0,
@@ -27,9 +27,9 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['answerChecklist'], operation: ['get'] } },
 	},
 
-	// ── Buscar por Ordem de Serviço ───────────────────────────────────────────────
+	// ── Get by Service Order ───────────────────────────────────────────────
 	{
-		displayName: 'ID Da Ordem De Serviço',
+		displayName: 'Service Order ID',
 		name: 'acIdServiceOrder',
 		type: 'number',
 		default: 0,
@@ -37,9 +37,9 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['answerChecklist'], operation: ['getByServiceOrder'] } },
 	},
 
-	// ── Listar ───────────────────────────────────────────────────────────────────
+	// ── List ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
@@ -47,7 +47,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['answerChecklist'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
@@ -55,12 +55,12 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['answerChecklist'], operation: ['list'] } },
 	},
 	{
-		displayName: 'Atualizado Após',
+		displayName: 'Updated After',
 		name: 'acUpdatedAfter',
 		type: 'dateTime',
 		default: '',
 		displayOptions: { show: { resource: ['answerChecklist'], operation: ['list'] } },
-		description: 'Sync incremental: retorna apenas registros atualizados após esta data',
+		description: 'Incremental sync: returns only records updated after this date',
 	},
 ];
 
@@ -117,5 +117,5 @@ export async function execute(
 		return this.helpers.returnJsonArray(toList(body));
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

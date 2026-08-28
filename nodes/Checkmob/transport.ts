@@ -19,7 +19,7 @@ export function parseJson(
 	try {
 		return JSON.parse(value) as IDataObject[];
 	} catch {
-		throw new NodeOperationError(node, `Campo "${fieldName}" contém JSON inválido.`);
+		throw new NodeOperationError(node, `Field "${fieldName}" contains invalid JSON.`);
 	}
 }
 
@@ -69,11 +69,11 @@ export function assertApiSuccess(
 ): void {
 	if (statusCode >= 400) {
 		const problema = body as Problema;
-		const errMsg = extractErrorMessage(problema) ?? 'Erro retornado pela API.';
+		const errMsg = extractErrorMessage(problema) ?? 'Error returned by the API.';
 		const description = problema?.erros ? JSON.stringify(problema.erros) : undefined;
 		throw new NodeOperationError(
 			node,
-			`HTTP ${statusCode} [${problema?.codigo ?? 'ERRO'}] — ${errMsg}`,
+			`HTTP ${statusCode} [${problema?.codigo ?? 'ERROR'}] — ${errMsg}`,
 			{ description },
 		);
 	}

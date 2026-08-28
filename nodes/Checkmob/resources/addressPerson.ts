@@ -4,19 +4,19 @@ import { apiRequest, assertApiSuccess } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['addressPerson'] } },
 		options: [
-			{ name: 'Buscar', value: 'get', description: 'Buscar o endereço da pessoa', action: 'Buscar endereco de pessoa' },
-			{ name: 'Substituir', value: 'put', description: 'Substituir o endereço da pessoa', action: 'Substituir endereco de pessoa' },
+			{ name: 'Get', value: 'get', description: 'Get the person\'s address', action: 'Get person address' },
+			{ name: 'Replace', value: 'put', description: 'Replace the person\'s address', action: 'Replace person address' },
 		],
 		default: 'get',
 	},
 	{
-		displayName: 'ID Da Pessoa',
+		displayName: 'Person ID',
 		name: 'addrPersonId',
 		type: 'number',
 		default: 0,
@@ -24,49 +24,49 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['addressPerson'], operation: ['get', 'put'] } },
 	},
 	{
-		displayName: 'Título',
+		displayName: 'Title',
 		name: 'addrTitle',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Número',
+		displayName: 'Number',
 		name: 'addrNumber',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Complemento',
+		displayName: 'Complement',
 		name: 'addrComplement',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
 	},
 	{
-		displayName: 'Bairro',
+		displayName: 'Neighborhood',
 		name: 'addrNeighborhood',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
 	},
 	{
-		displayName: 'CEP',
+		displayName: 'ZIP Code',
 		name: 'addrZipCode',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
 	},
 	{
-		displayName: 'ID Da Cidade',
+		displayName: 'City ID',
 		name: 'addrIdCity',
 		type: 'number',
 		default: 0,
 		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
 	},
 	{
-		displayName: 'ID Do Estado',
+		displayName: 'State ID',
 		name: 'addrIdState',
 		type: 'number',
 		default: 0,
@@ -134,5 +134,5 @@ export async function execute(
 		return this.helpers.returnJsonArray([body as IDataObject]);
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

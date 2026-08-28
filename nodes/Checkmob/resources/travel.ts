@@ -3,37 +3,37 @@ import { NodeOperationError } from 'n8n-workflow';
 import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
 
 const APPROVAL_OPTIONS = [
-	{ name: 'Aprovado', value: 0 },
-	{ name: 'Desconsiderado', value: 1 },
-	{ name: 'Em Verificação', value: 2 },
-	{ name: 'Não Avaliado', value: 3 },
-	{ name: 'Rejeitado', value: 4 },
+	{ name: 'Approved', value: 0 },
+	{ name: 'Disregarded', value: 1 },
+	{ name: 'Under Verification', value: 2 },
+	{ name: 'Not Evaluated', value: 3 },
+	{ name: 'Rejected', value: 4 },
 ];
 
 const PAYMENT_OPTIONS = [
-	{ name: 'Em Aberto', value: 0 },
-	{ name: 'Aguardando Avaliação', value: 2 },
-	{ name: 'Pago', value: 3 },
+	{ name: 'Open', value: 0 },
+	{ name: 'Awaiting Evaluation', value: 2 },
+	{ name: 'Paid', value: 3 },
 ];
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['travel'] } },
 		options: [
-			{ name: 'Resumo Por Usuário', value: 'listUsers', description: 'Resumo de deslocamento consolidado por usuário', action: 'Listar resumo de deslocamento por usuario' },
-			{ name: 'Listar Dias', value: 'listDays', description: 'Dias de deslocamento de um usuário', action: 'Listar dias de deslocamento' },
-			{ name: 'Listar Percursos', value: 'listRoutes', description: 'Percursos (origem → destino) de um dia de deslocamento', action: 'Listar percursos de deslocamento' },
+			{ name: 'Summary By User', value: 'listUsers', description: 'Travel summary consolidated by user', action: 'List travel summary by user' },
+			{ name: 'List Days', value: 'listDays', description: 'Travel days of a user', action: 'List travel days' },
+			{ name: 'List Routes', value: 'listRoutes', description: 'Routes (origin → destination) of a travel day', action: 'List travel routes' },
 		],
 		default: 'listUsers',
 	},
 
-	// ── Comuns a Resumo por Usuário e Listar Dias ────────────────────────────────
+	// ── Common to Summary by User and List Days ────────────────────────────────
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
@@ -41,7 +41,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays', 'listRoutes'] } },
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
@@ -49,42 +49,42 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays', 'listRoutes'] } },
 	},
 	{
-		displayName: 'Data Início',
+		displayName: 'Start Date',
 		name: 'travelDataInicio',
 		type: 'dateTime',
 		default: '',
 		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays', 'listRoutes'] } },
 	},
 	{
-		displayName: 'Data Fim',
+		displayName: 'End Date',
 		name: 'travelDataFim',
 		type: 'dateTime',
 		default: '',
 		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays', 'listRoutes'] } },
 	},
 
-	// ── Resumo por Usuário / Listar Dias — filtros extras ────────────────────────
+	// ── Summary by User / List Days — extra filters ────────────────────────
 	{
-		displayName: 'Filtros Adicionais',
+		displayName: 'Additional Filters',
 		name: 'travelFilters',
 		type: 'collection',
-		placeholder: 'Adicionar filtro',
+		placeholder: 'Add Filter',
 		default: {},
 		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays'] } },
 		options: [
-			{ displayName: 'Aprovação', name: 'aprovacao', type: 'multiOptions', options: APPROVAL_OPTIONS, default: [] },
-			{ displayName: 'Pagamento', name: 'pagamento', type: 'multiOptions', options: PAYMENT_OPTIONS, default: [] },
+			{ displayName: 'Approval', name: 'aprovacao', type: 'multiOptions', options: APPROVAL_OPTIONS, default: [] },
+			{ displayName: 'Payment', name: 'pagamento', type: 'multiOptions', options: PAYMENT_OPTIONS, default: [] },
 			{
-				displayName: 'Ativo',
+				displayName: 'Active',
 				name: 'ativo',
 				type: 'options',
-				options: [{ name: 'Todos', value: 'all' }, { name: 'Sim', value: 'true' }, { name: 'Não', value: 'false' }],
+				options: [{ name: 'All', value: 'all' }, { name: 'Yes', value: 'true' }, { name: 'No', value: 'false' }],
 				default: 'all',
 			},
 		],
 	},
 	{
-		displayName: 'IDs De Usuário (Separados Por Vírgula)',
+		displayName: 'User IDs (Comma-Separated)',
 		name: 'travelIdsUser',
 		type: 'string',
 		default: '',
@@ -92,7 +92,7 @@ export const description: INodeProperties[] = [
 		placeholder: '1,2,3',
 	},
 	{
-		displayName: 'IDs De Grupo (Separados Por Vírgula)',
+		displayName: 'Group IDs (Comma-Separated)',
 		name: 'travelIdsGroup',
 		type: 'string',
 		default: '',
@@ -100,26 +100,26 @@ export const description: INodeProperties[] = [
 		placeholder: '1,2,3',
 	},
 
-	// ── Listar Dias / Listar Percursos ───────────────────────────────────────────
+	// ── List Days / List Routes ───────────────────────────────────────────
 	{
-		displayName: 'ID Do Usuário',
+		displayName: 'User ID',
 		name: 'travelIdUser',
 		type: 'number',
 		default: 0,
 		required: true,
 		displayOptions: { show: { resource: ['travel'], operation: ['listDays', 'listRoutes'] } },
-		description: 'Obrigatório. Informe o ID real de um usuário — a API rejeita 0 ou campo vazio.',
+		description: 'Required. Provide the actual ID of a user — the API rejects 0 or an empty field.',
 	},
 
-	// ── Listar Percursos ──────────────────────────────────────────────────────────
+	// ── List Routes ──────────────────────────────────────────────────────────
 	{
-		displayName: 'ID Do Dia',
+		displayName: 'Day ID',
 		name: 'travelIdDay',
 		type: 'number',
 		default: 0,
 		required: true,
 		displayOptions: { show: { resource: ['travel'], operation: ['listRoutes'] } },
-		description: 'Obrigatório. Informe o ID real de um dia de deslocamento (obtido em "Listar Dias") — a API rejeita 0 ou campo vazio.',
+		description: 'Required. Provide the actual ID of a travel day (obtained from "List Days") — the API rejects 0 or an empty field.',
 	},
 ];
 
@@ -198,5 +198,5 @@ export async function execute(
 		return this.helpers.returnJsonArray(toList(body));
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }

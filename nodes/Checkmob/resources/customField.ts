@@ -4,61 +4,61 @@ import { apiRequest, assertApiSuccess, toList } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
-		displayName: 'Operação',
+		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['customField'] } },
 		options: [
-			{ name: 'Listar', value: 'list', description: 'Listar campos personalizados', action: 'Listar campos personalizados' },
+			{ name: 'List', value: 'list', description: 'List custom fields', action: 'List custom fields' },
 		],
 		default: 'list',
 	},
 	{
-		displayName: 'Origem',
+		displayName: 'Origin',
 		name: 'cfOrigin',
 		type: 'options',
 		options: [
-			{ name: 'Clientes', value: 'clientes' },
-			{ name: 'Pessoas', value: 'pessoas' },
+			{ name: 'Clients', value: 'clientes' },
+			{ name: 'People', value: 'pessoas' },
 		],
 		default: 'clientes',
 		displayOptions: { show: { resource: ['customField'], operation: ['list'] } },
-		description: 'De qual cadastro listar os campos personalizados',
+		description: 'Which registry to list custom fields from',
 	},
 	{
-		displayName: 'Página',
+		displayName: 'Page',
 		name: 'page',
 		type: 'number',
 		default: 1,
 		typeOptions: { minValue: 1 },
 		displayOptions: { show: { resource: ['customField'], operation: ['list'] } },
-		description: 'Página a buscar (começa em 1)',
+		description: 'Page to fetch (starts at 1)',
 	},
 	{
-		displayName: 'Por Página',
+		displayName: 'Per Page',
 		name: 'perPage',
 		type: 'number',
 		default: 25,
 		typeOptions: { minValue: 1, maxValue: 100 },
 		displayOptions: { show: { resource: ['customField'], operation: ['list'] } },
-		description: 'Itens por página (máximo 100)',
+		description: 'Items per page (maximum 100)',
 	},
 	{
-		displayName: 'Busca',
+		displayName: 'Search',
 		name: 'search',
 		type: 'string',
 		default: '',
 		displayOptions: { show: { resource: ['customField'], operation: ['list'] } },
-		description: 'Busca textual por nome ou palavra-chave',
+		description: 'Text search by name or keyword',
 	},
 	{
-		displayName: 'Atualizado Após',
+		displayName: 'Updated After',
 		name: 'updatedAfter',
 		type: 'dateTime',
 		default: '',
 		displayOptions: { show: { resource: ['customField'], operation: ['list'] } },
-		description: 'Sync incremental: retorna apenas registros atualizados após esta data',
+		description: 'Incremental sync: returns only records updated after this date',
 	},
 ];
 
@@ -92,5 +92,5 @@ export async function execute(
 		return this.helpers.returnJsonArray(toList(body));
 	}
 
-	throw new NodeOperationError(this.getNode(), `Operação desconhecida: ${operation}`);
+	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);
 }
