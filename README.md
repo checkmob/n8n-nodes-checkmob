@@ -29,29 +29,29 @@ This node supports the following Checkmob resources and operations:
 
 | Resource | Operations |
 |---|---|
-| **Categoria** | Listar |
-| **Campo Personalizado** | Listar (Clientes/Pessoas) |
-| **Cliente** | Listar · Buscar · Criar · Criar em Lote · Substituir · Editar Parcialmente · Excluir · Vincular/Desvincular Pessoas |
-| **Deslocamento** | Resumo por Usuário · Listar Dias · Listar Percursos |
-| **Endereço do Cliente** | Listar · Substituir Principal |
-| **Endereço de Pessoa** | Buscar · Substituir |
-| **Etapa** | Listar |
-| **Grupo** | Listar · Buscar · Criar · Editar · Excluir |
-| **Nota do Cliente** | Listar · Criar · Editar · Excluir |
-| **Objetivo** | Listar |
-| **Ordem de Serviço** | Listar · Buscar · Criar · Substituir · Excluir · Excluir em Lote · Listar/Alterar Status |
-| **Pessoa** | Listar · Buscar · Criar · Editar · Excluir · Ativar/Inativar em Lote · Vincular/Desvincular Clientes |
-| **Questionário** | Listar · Buscar · Vincular/Remover Grupo · Vincular/Remover Segmento |
-| **Registro** | Listar · Buscar · Criar Agendado · Editar |
-| **Respostas de Questionário** | Buscar por Registro · Buscar por OS · Listar |
-| **Segmento** | Listar · Buscar · Criar · Editar · Excluir · Obter Vínculos · Vincular/Remover Cliente, Grupo, Usuário |
-| **Setor de Mercado** | Listar |
-| **Status de Serviço** | Listar |
-| **Temperatura** | Listar |
-| **Tipo de Serviço** | Listar |
-| **Usuário** | Listar · Buscar · Buscar Localização |
+| **Category** | List |
+| **Custom Field** | List (Clients/People) |
+| **Client** | List · Get · Create · Create in Bulk · Replace · Update Partially · Delete · Link/Unlink People |
+| **Travel** | Summary by User · List Days · List Routes |
+| **Client Address** | List · Replace Main |
+| **Person Address** | Get · Replace |
+| **Step** | List |
+| **Group** | List · Get · Create · Update · Delete |
+| **Client Note** | List · Create · Update · Delete |
+| **Objective** | List |
+| **Service Order** | List · Get · Create · Replace · Delete · Delete Bulk · List/Change Status |
+| **Person** | List · Get · Create · Update · Delete · Activate/Deactivate in Bulk · Link/Unlink Clients |
+| **Checklist** | Get · List · Link/Remove Group · Link/Remove Segment |
+| **Record** | Get · List · Create Scheduled · Update |
+| **Checklist Answer** | Get by Record · Get by Service Order · List |
+| **Segment** | List · Get · Create · Update · Delete · Get Links · Link/Remove Client, Group, User |
+| **Market Sector** | List |
+| **Service Status** | List |
+| **Temperature** | List |
+| **Service Type** | List |
+| **User** | List · Get · Locations |
 
-> Some fields available in the old API v1 (e.g. setting a client's categoria/temperatura/etapa/valor de negócio at creation time) are read-only in API v2 — see the [Checkmob v2 docs](https://api-integration.checkmob.com/index.html) for the current capabilities of each resource.
+> Some fields available in the old API v1 (e.g. setting a client's category/temperature/stage/deal value at creation time) are read-only in API v2 — see the [Checkmob v2 docs](https://api-integration.checkmob.com/index.html) for the current capabilities of each resource.
 
 This node can also be used as a **tool by AI Agents** in n8n, so an agent can call Checkmob resources directly from natural-language instructions.
 
@@ -61,14 +61,14 @@ To use this node, you need a Checkmob account with API access.
 
 ### Prerequisites
 
-1. Have an active Checkmob account with a valid **login** (usuário or e-mail) and **senha**.
+1. Have an active Checkmob account with a valid **login** (username or email) and **password**.
 
 ### Authentication Setup
 
 1. In n8n, go to **Credentials** → **New** → **Checkmob API**
 2. Fill in:
    - **Login** — your Checkmob username or e-mail
-   - **Senha** — your Checkmob password
+   - **Password** — your Checkmob password
 3. **Save** the credential.
 
 The node authenticates against `https://api-integration.checkmob.com`, obtains a Bearer token automatically, and transparently refreshes it when it expires — no manual token management is needed.
@@ -81,20 +81,20 @@ The node authenticates against `https://api-integration.checkmob.com`, obtains a
 
 ## Usage
 
-### Idioma (Language)
+### Language
 
-Each node instance exposes an **Idioma** dropdown:
+Each node instance exposes a **Language** dropdown:
 
 | Option | Value |
 |---|---|
-| Português (default) | `pt-BR` |
+| Portuguese (default) | `pt-BR` |
 | English | `en-US` |
 
 This sets the `Accept-Language` header on every API request, controlling the language of error messages returned by Checkmob.
 
 ### Continue on Error
 
-When **Continue on Error** is enabled, failed items return a JSON object instead of halting the workflow:
+When **Continue on Error** is enabled, failed items return a JSON object instead of halting the workflow. The example below shows an actual error response from the Checkmob API — its field names and messages are returned as-is by Checkmob (in Portuguese by default, or in English when **Language** is set to `en-US`):
 
 ```json
 {
