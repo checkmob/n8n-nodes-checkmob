@@ -46,6 +46,70 @@ export async function apiRequest(
 	return { statusCode: res.statusCode as number, body };
 }
 
+interface PaginaResultado {
+	dados?: IDataObject[];
+	total?: number;
+	pagina_atual?: number;
+	total_paginas?: number;
+}
+
+/**
+ * Calls a paginated Checkmob "list" endpoint, honoring the standard n8n
+ * Return All / Limit pattern. Defaults to POST with pagina/por_pagina in the
+ * request body; pass `method: 'GET'` for endpoints that page via querystring
+ * instead (pagina/por_pagina merged into `qs`).
+ *
+ * - returnAll=false: fetches a single page sized to `limit` (capped at the API's
+ *   max of 100 per page) and returns up to `limit` items.
+ * - returnAll=true: pages through `pagina` 1..total_paginas, concatenating `dados`
+ *   until the API reports no further pages (or returns an empty page, as a
+ *   safety net against a malformed total_paginas).
+ */
+export async function apiRequestAllItems(
+	this: IExecuteFunctions,
+	options: {
+		url: string;
+		headers: IDataObject;
+		body?: IDataObject;
+		qs?: IDataObject;
+		method?: 'GET' | 'POST';
+		returnAll: boolean;
+		limit?: number;
+	},
+	node: ReturnType<IExecuteFunctions['getNode']>,
+): Promise<IDataObject[]> {
+	const method = options.method ?? 'POST';
+	const perPage = options.returnAll ? 100 : Math.min(options.limit ?? 50, 100);
+	const results: IDataObject[] = [];
+	let page = 1;
+
+	while (true) {
+		const paging = { pagina: page, por_pagina: perPage };
+		const { statusCode, body } = await apiRequest.call(this, {
+			method,
+			url: options.url,
+			headers: options.headers,
+			body: method === 'POST' ? { ...(options.body ?? {}), ...paging } : options.body,
+			qs: method === 'GET' ? { ...(options.qs ?? {}), ...paging } : options.qs,
+		});
+		assertApiSuccess(statusCode, body, node);
+
+		const pageResult = body as PaginaResultado;
+		const items = Array.isArray(pageResult?.dados) ? pageResult.dados : toList(body);
+		results.push(...items);
+
+		if (!options.returnAll) {
+			return results.slice(0, options.limit ?? 50);
+		}
+
+		const totalPages = pageResult?.total_paginas ?? 1;
+		if (items.length === 0 || page >= totalPages) {
+			return results;
+		}
+		page += 1;
+	}
+}
+
 interface ErroCampo {
 	campo?: string | null;
 	codigo?: string | null;

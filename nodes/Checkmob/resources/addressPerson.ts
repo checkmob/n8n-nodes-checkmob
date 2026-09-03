@@ -24,67 +24,23 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['addressPerson'], operation: ['get', 'put'] } },
 	},
 	{
-		displayName: 'Title',
-		name: 'addrTitle',
-		type: 'string',
-		default: '',
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
 		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Number',
-		name: 'addrNumber',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Complement',
-		name: 'addrComplement',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Neighborhood',
-		name: 'addrNeighborhood',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
-	},
-	{
-		displayName: 'ZIP Code',
-		name: 'addrZipCode',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
-	},
-	{
-		displayName: 'City ID',
-		name: 'addrIdCity',
-		type: 'number',
-		default: 0,
-		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
-	},
-	{
-		displayName: 'State ID',
-		name: 'addrIdState',
-		type: 'number',
-		default: 0,
-		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Latitude',
-		name: 'addrLatitude',
-		type: 'number',
-		default: 0,
-		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Longitude',
-		name: 'addrLongitude',
-		type: 'number',
-		default: 0,
-		displayOptions: { show: { resource: ['addressPerson'], operation: ['put'] } },
+		options: [
+			{ displayName: 'City ID', name: 'addrIdCity', type: 'number', default: 0 },
+			{ displayName: 'Complement', name: 'addrComplement', type: 'string', default: '' },
+			{ displayName: 'Latitude', name: 'addrLatitude', type: 'number', default: 0 },
+			{ displayName: 'Longitude', name: 'addrLongitude', type: 'number', default: 0 },
+			{ displayName: 'Neighborhood', name: 'addrNeighborhood', type: 'string', default: '' },
+			{ displayName: 'Number', name: 'addrNumber', type: 'string', default: '' },
+			{ displayName: 'State ID', name: 'addrIdState', type: 'number', default: 0 },
+			{ displayName: 'Title', name: 'addrTitle', type: 'string', default: '' },
+			{ displayName: 'ZIP Code', name: 'addrZipCode', type: 'string', default: '' },
+		],
 	},
 ];
 
@@ -111,16 +67,17 @@ export async function execute(
 
 	if (operation === 'put') {
 		const addrPersonId = this.getNodeParameter('addrPersonId', i) as number;
+		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 		const reqBody: IDataObject = {
-			titulo: this.getNodeParameter('addrTitle', i, '') as string,
-			numero: this.getNodeParameter('addrNumber', i, '') as string,
-			complemento: this.getNodeParameter('addrComplement', i, '') as string,
-			bairro: this.getNodeParameter('addrNeighborhood', i, '') as string,
-			cep: this.getNodeParameter('addrZipCode', i, '') as string,
-			id_cidade: this.getNodeParameter('addrIdCity', i, 0) as number,
-			id_estado: this.getNodeParameter('addrIdState', i, 0) as number,
-			latitude: this.getNodeParameter('addrLatitude', i, 0) as number,
-			longitude: this.getNodeParameter('addrLongitude', i, 0) as number,
+			titulo: (additionalFields.addrTitle as string) ?? '',
+			numero: (additionalFields.addrNumber as string) ?? '',
+			complemento: (additionalFields.addrComplement as string) ?? '',
+			bairro: (additionalFields.addrNeighborhood as string) ?? '',
+			cep: (additionalFields.addrZipCode as string) ?? '',
+			id_cidade: (additionalFields.addrIdCity as number) ?? 0,
+			id_estado: (additionalFields.addrIdState as number) ?? 0,
+			latitude: (additionalFields.addrLatitude as number) ?? 0,
+			longitude: (additionalFields.addrLongitude as number) ?? 0,
 		};
 
 		const { statusCode, body } = await apiRequest.call(this, {

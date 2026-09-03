@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
+import { apiRequest, apiRequestAllItems, assertApiSuccess, toNumArray } from '../transport';
 
 const LINK_ADD: Record<string, string> = {
 	linkClient: 'clientes',
@@ -50,46 +50,54 @@ export const description: INodeProperties[] = [
 
 	// ── List ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Page',
-		name: 'page',
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		displayOptions: { show: { resource: ['segment'], operation: ['list'] } },
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
 		type: 'number',
-		default: 1,
+		default: 50,
 		typeOptions: { minValue: 1 },
-		displayOptions: { show: { resource: ['segment'], operation: ['list'] } },
+		displayOptions: { show: { resource: ['segment'], operation: ['list'], returnAll: [false] } },
+		description: 'Max number of results to return',
 	},
 	{
-		displayName: 'Per Page',
-		name: 'perPage',
-		type: 'number',
-		default: 25,
-		typeOptions: { minValue: 1, maxValue: 100 },
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
 		displayOptions: { show: { resource: ['segment'], operation: ['list'] } },
-	},
-	{
-		displayName: 'Search',
-		name: 'search',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['segment'], operation: ['list'] } },
-	},
-	{
-		displayName: 'Active',
-		name: 'segActive',
-		type: 'options',
 		options: [
-			{ name: 'All', value: 'all' },
-			{ name: 'Active', value: 'true' },
-			{ name: 'Inactive', value: 'false' },
+			{
+				displayName: 'Search',
+				name: 'search',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Active',
+				name: 'segActive',
+				type: 'options',
+				options: [
+					{ name: 'All', value: 'all' },
+					{ name: 'Active', value: 'true' },
+					{ name: 'Inactive', value: 'false' },
+				],
+				default: 'all',
+			},
+			{
+				displayName: 'Updated After',
+				name: 'updatedAfter',
+				type: 'dateTime',
+				default: '',
+			},
 		],
-		default: 'all',
-		displayOptions: { show: { resource: ['segment'], operation: ['list'] } },
-	},
-	{
-		displayName: 'Updated After',
-		name: 'updatedAfter',
-		type: 'dateTime',
-		default: '',
-		displayOptions: { show: { resource: ['segment'], operation: ['list'] } },
 	},
 
 	// ── Create ────────────────────────────────────────────────────────────────────
@@ -102,42 +110,58 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['segment'], operation: ['post'] } },
 	},
 	{
-		displayName: 'User IDs (Comma-Separated)',
-		name: 'segIdsUsers',
-		type: 'string',
-		default: '',
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
 		displayOptions: { show: { resource: ['segment'], operation: ['post'] } },
-		placeholder: '1,2,3',
-	},
-	{
-		displayName: 'Group IDs (Comma-Separated)',
-		name: 'segIdsGroups',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['segment'], operation: ['post'] } },
-		placeholder: '1,2,3',
+		options: [
+			{
+				displayName: 'User IDs (Comma-Separated)',
+				name: 'segIdsUsers',
+				type: 'string',
+				default: '',
+				placeholder: '1,2,3',
+			},
+			{
+				displayName: 'Group IDs (Comma-Separated)',
+				name: 'segIdsGroups',
+				type: 'string',
+				default: '',
+				placeholder: '1,2,3',
+			},
+		],
 	},
 
 	// ── Update ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Name',
-		name: 'segPutName',
-		type: 'string',
-		default: '',
+		displayName: 'Fields to Update',
+		name: 'fieldsToUpdate',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
 		displayOptions: { show: { resource: ['segment'], operation: ['put'] } },
-		description: 'Leave empty to keep the current name',
-	},
-	{
-		displayName: 'Active',
-		name: 'segPutActive',
-		type: 'options',
 		options: [
-			{ name: 'Keep Current', value: 'keep' },
-			{ name: 'Active', value: 'true' },
-			{ name: 'Inactive', value: 'false' },
+			{
+				displayName: 'Name',
+				name: 'segPutName',
+				type: 'string',
+				default: '',
+				description: 'Leave empty to keep the current name',
+			},
+			{
+				displayName: 'Active',
+				name: 'segPutActive',
+				type: 'options',
+				options: [
+					{ name: 'Keep Current', value: 'keep' },
+					{ name: 'Active', value: 'true' },
+					{ name: 'Inactive', value: 'false' },
+				],
+				default: 'keep',
+			},
 		],
-		default: 'keep',
-		displayOptions: { show: { resource: ['segment'], operation: ['put'] } },
 	},
 
 	// ── Link Operations ─────────────────────────────────────────────────────
@@ -210,32 +234,33 @@ export async function execute(
 	}
 
 	if (operation === 'list') {
-		const page = this.getNodeParameter('page', i, 1) as number;
-		const perPage = this.getNodeParameter('perPage', i, 25) as number;
-		const search = this.getNodeParameter('search', i, '') as string;
-		const activeParam = this.getNodeParameter('segActive', i, 'all') as string;
-		const updatedAfter = this.getNodeParameter('updatedAfter', i, '') as string;
+		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+		const limit = this.getNodeParameter('limit', i, 50) as number;
+		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 
-		const reqBody: IDataObject = { pagina: page, por_pagina: perPage };
-		if (search.trim()) reqBody.busca = search;
-		if (activeParam !== 'all') reqBody.ativo = activeParam === 'true';
-		if (updatedAfter) reqBody.atualizado_apos = updatedAfter;
+		const reqBody: IDataObject = {};
+		if (typeof additionalFields.search === 'string' && additionalFields.search.trim()) {
+			reqBody.busca = additionalFields.search;
+		}
+		if (additionalFields.segActive && additionalFields.segActive !== 'all') {
+			reqBody.ativo = additionalFields.segActive === 'true';
+		}
+		if (additionalFields.updatedAfter) reqBody.atualizado_apos = additionalFields.updatedAfter;
 
-		const { statusCode, body } = await apiRequest.call(this, {
-			method: 'POST',
-			url: `${baseUrl}/v2/segmentos/list`,
-			headers: authHeaders,
-			body: reqBody,
-		});
-		assertApiSuccess(statusCode, body, this.getNode());
+		const items = await apiRequestAllItems.call(
+			this,
+			{ url: `${baseUrl}/v2/segmentos/list`, headers: authHeaders, body: reqBody, returnAll, limit },
+			this.getNode(),
+		);
 
-		return this.helpers.returnJsonArray(toList(body));
+		return this.helpers.returnJsonArray(items);
 	}
 
 	if (operation === 'post') {
 		const nome = this.getNodeParameter('segName', i) as string;
-		const idsUsersRaw = this.getNodeParameter('segIdsUsers', i, '') as string;
-		const idsGroupsRaw = this.getNodeParameter('segIdsGroups', i, '') as string;
+		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
+		const idsUsersRaw = (additionalFields.segIdsUsers as string) || '';
+		const idsGroupsRaw = (additionalFields.segIdsGroups as string) || '';
 
 		const reqBody: IDataObject = { nome };
 		if (idsUsersRaw.trim()) reqBody.ids_usuarios = toNumArray(idsUsersRaw);
@@ -254,8 +279,9 @@ export async function execute(
 
 	if (operation === 'put') {
 		const id = this.getNodeParameter('segmentId', i) as number;
-		const nome = this.getNodeParameter('segPutName', i, '') as string;
-		const activeParam = this.getNodeParameter('segPutActive', i, 'keep') as string;
+		const fieldsToUpdate = this.getNodeParameter('fieldsToUpdate', i, {}) as IDataObject;
+		const nome = (fieldsToUpdate.segPutName as string) || '';
+		const activeParam = (fieldsToUpdate.segPutActive as string) || 'keep';
 
 		const reqBody: IDataObject = {};
 		if (nome.trim()) reqBody.nome = nome;

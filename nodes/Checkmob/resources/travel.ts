@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
+import { apiRequestAllItems, toNumArray } from '../transport';
 
 const APPROVAL_OPTIONS = [
 	{ name: 'Approved', value: 0 },
@@ -31,73 +31,23 @@ export const description: INodeProperties[] = [
 		default: 'listUsers',
 	},
 
-	// ── Common to Summary by User and List Days ────────────────────────────────
+	// ── Common to Summary by User, List Days and List Routes ────────────────
 	{
-		displayName: 'Page',
-		name: 'page',
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays', 'listRoutes'] } },
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
 		type: 'number',
-		default: 1,
+		default: 50,
 		typeOptions: { minValue: 1 },
-		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays', 'listRoutes'] } },
-	},
-	{
-		displayName: 'Per Page',
-		name: 'perPage',
-		type: 'number',
-		default: 25,
-		typeOptions: { minValue: 1, maxValue: 100 },
-		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays', 'listRoutes'] } },
-	},
-	{
-		displayName: 'Start Date',
-		name: 'travelDataInicio',
-		type: 'dateTime',
-		default: '',
-		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays', 'listRoutes'] } },
-	},
-	{
-		displayName: 'End Date',
-		name: 'travelDataFim',
-		type: 'dateTime',
-		default: '',
-		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays', 'listRoutes'] } },
-	},
-
-	// ── Summary by User / List Days — extra filters ────────────────────────
-	{
-		displayName: 'Additional Filters',
-		name: 'travelFilters',
-		type: 'collection',
-		placeholder: 'Add Filter',
-		default: {},
-		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays'] } },
-		options: [
-			{ displayName: 'Approval', name: 'aprovacao', type: 'multiOptions', options: APPROVAL_OPTIONS, default: [] },
-			{ displayName: 'Payment', name: 'pagamento', type: 'multiOptions', options: PAYMENT_OPTIONS, default: [] },
-			{
-				displayName: 'Active',
-				name: 'ativo',
-				type: 'options',
-				options: [{ name: 'All', value: 'all' }, { name: 'Yes', value: 'true' }, { name: 'No', value: 'false' }],
-				default: 'all',
-			},
-		],
-	},
-	{
-		displayName: 'User IDs (Comma-Separated)',
-		name: 'travelIdsUser',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['travel'], operation: ['listUsers'] } },
-		placeholder: '1,2,3',
-	},
-	{
-		displayName: 'Group IDs (Comma-Separated)',
-		name: 'travelIdsGroup',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['travel'], operation: ['listUsers'] } },
-		placeholder: '1,2,3',
+		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays', 'listRoutes'], returnAll: [false] } },
+		description: 'Max number of results to return',
 	},
 
 	// ── List Days / List Routes ───────────────────────────────────────────
@@ -121,6 +71,55 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['travel'], operation: ['listRoutes'] } },
 		description: 'Required. Provide the actual ID of a travel day (obtained from "List Days") — the API rejects 0 or an empty field.',
 	},
+
+	// ── Summary by User / List Days — additional fields ─────────────────────
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { resource: ['travel'], operation: ['listUsers', 'listDays'] } },
+		options: [
+			{
+				displayName: 'Active',
+				name: 'ativo',
+				type: 'options',
+				options: [{ name: 'All', value: 'all' }, { name: 'Yes', value: 'true' }, { name: 'No', value: 'false' }],
+				default: 'all',
+			},
+			{ displayName: 'Approval', name: 'aprovacao', type: 'multiOptions', options: APPROVAL_OPTIONS, default: [] },
+			{ displayName: 'End Date', name: 'travelDataFim', type: 'dateTime', default: '' },
+			{ displayName: 'Payment', name: 'pagamento', type: 'multiOptions', options: PAYMENT_OPTIONS, default: [] },
+			{ displayName: 'Start Date', name: 'travelDataInicio', type: 'dateTime', default: '' },
+		],
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFieldsUsers',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { resource: ['travel'], operation: ['listUsers'] } },
+		options: [
+			{ displayName: 'User IDs (Comma-Separated)', name: 'travelIdsUser', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Group IDs (Comma-Separated)', name: 'travelIdsGroup', type: 'string', default: '', placeholder: '1,2,3' },
+		],
+	},
+
+	// ── List Routes — additional fields ──────────────────────────────────────
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFieldsRoutes',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { resource: ['travel'], operation: ['listRoutes'] } },
+		options: [
+			{ displayName: 'Start Date', name: 'travelDataInicio', type: 'dateTime', default: '' },
+			{ displayName: 'End Date', name: 'travelDataFim', type: 'dateTime', default: '' },
+		],
+	},
 ];
 
 export async function execute(
@@ -132,70 +131,62 @@ export async function execute(
 	const operation = this.getNodeParameter('operation', i) as string;
 
 	if (operation === 'listUsers' || operation === 'listDays') {
-		const page = this.getNodeParameter('page', i, 1) as number;
-		const perPage = this.getNodeParameter('perPage', i, 25) as number;
-		const dataInicio = this.getNodeParameter('travelDataInicio', i, '') as string;
-		const dataFim = this.getNodeParameter('travelDataFim', i, '') as string;
-		const filters = this.getNodeParameter('travelFilters', i, {}) as IDataObject;
+		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+		const limit = this.getNodeParameter('limit', i, 50) as number;
+		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 
-		const reqBody: IDataObject = { pagina: page, por_pagina: perPage };
-		if (dataInicio) reqBody.data_inicio = dataInicio;
-		if (dataFim) reqBody.data_fim = dataFim;
-		if (Array.isArray(filters.aprovacao) && filters.aprovacao.length) reqBody.aprovacao = filters.aprovacao;
-		if (Array.isArray(filters.pagamento) && filters.pagamento.length) reqBody.pagamento = filters.pagamento;
-		if (typeof filters.ativo === 'string' && filters.ativo !== 'all') reqBody.ativo = filters.ativo === 'true';
+		const reqBody: IDataObject = {};
+		if (additionalFields.travelDataInicio) reqBody.data_inicio = additionalFields.travelDataInicio;
+		if (additionalFields.travelDataFim) reqBody.data_fim = additionalFields.travelDataFim;
+		if (Array.isArray(additionalFields.aprovacao) && additionalFields.aprovacao.length) reqBody.aprovacao = additionalFields.aprovacao;
+		if (Array.isArray(additionalFields.pagamento) && additionalFields.pagamento.length) reqBody.pagamento = additionalFields.pagamento;
+		if (typeof additionalFields.ativo === 'string' && additionalFields.ativo !== 'all') reqBody.ativo = additionalFields.ativo === 'true';
 
 		if (operation === 'listUsers') {
-			const idsUserRaw = this.getNodeParameter('travelIdsUser', i, '') as string;
-			const idsGroupRaw = this.getNodeParameter('travelIdsGroup', i, '') as string;
+			const additionalFieldsUsers = this.getNodeParameter('additionalFieldsUsers', i, {}) as IDataObject;
+			const idsUserRaw = (additionalFieldsUsers.travelIdsUser as string) ?? '';
+			const idsGroupRaw = (additionalFieldsUsers.travelIdsGroup as string) ?? '';
 			if (idsUserRaw.trim()) reqBody.ids_usuario = toNumArray(idsUserRaw);
 			if (idsGroupRaw.trim()) reqBody.ids_grupo = toNumArray(idsGroupRaw);
 
-			const { statusCode, body } = await apiRequest.call(this, {
-				method: 'POST',
-				url: `${baseUrl}/v2/deslocamentos/usuarios/list`,
-				headers: authHeaders,
-				body: reqBody,
-			});
-			assertApiSuccess(statusCode, body, this.getNode());
+			const items = await apiRequestAllItems.call(
+				this,
+				{ url: `${baseUrl}/v2/deslocamentos/usuarios/list`, headers: authHeaders, body: reqBody, returnAll, limit },
+				this.getNode(),
+			);
 
-			return this.helpers.returnJsonArray(toList(body));
+			return this.helpers.returnJsonArray(items);
 		}
 
 		reqBody.id_usuario = this.getNodeParameter('travelIdUser', i) as number;
 
-		const { statusCode, body } = await apiRequest.call(this, {
-			method: 'POST',
-			url: `${baseUrl}/v2/deslocamentos/dias/list`,
-			headers: authHeaders,
-			body: reqBody,
-		});
-		assertApiSuccess(statusCode, body, this.getNode());
+		const items = await apiRequestAllItems.call(
+			this,
+			{ url: `${baseUrl}/v2/deslocamentos/dias/list`, headers: authHeaders, body: reqBody, returnAll, limit },
+			this.getNode(),
+		);
 
-		return this.helpers.returnJsonArray(toList(body));
+		return this.helpers.returnJsonArray(items);
 	}
 
 	if (operation === 'listRoutes') {
-		const page = this.getNodeParameter('page', i, 1) as number;
-		const perPage = this.getNodeParameter('perPage', i, 25) as number;
+		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+		const limit = this.getNodeParameter('limit', i, 50) as number;
 		const idUsuario = this.getNodeParameter('travelIdUser', i) as number;
 		const idDia = this.getNodeParameter('travelIdDay', i) as number;
-		const dataInicio = this.getNodeParameter('travelDataInicio', i, '') as string;
-		const dataFim = this.getNodeParameter('travelDataFim', i, '') as string;
+		const additionalFieldsRoutes = this.getNodeParameter('additionalFieldsRoutes', i, {}) as IDataObject;
 
-		const reqBody: IDataObject = { pagina: page, por_pagina: perPage, id_usuario: idUsuario, id_dia: idDia };
-		if (dataInicio) reqBody.data_inicio = dataInicio;
-		if (dataFim) reqBody.data_fim = dataFim;
+		const reqBody: IDataObject = { id_usuario: idUsuario, id_dia: idDia };
+		if (additionalFieldsRoutes.travelDataInicio) reqBody.data_inicio = additionalFieldsRoutes.travelDataInicio;
+		if (additionalFieldsRoutes.travelDataFim) reqBody.data_fim = additionalFieldsRoutes.travelDataFim;
 
-		const { statusCode, body } = await apiRequest.call(this, {
-			method: 'POST',
-			url: `${baseUrl}/v2/deslocamentos/percursos/list`,
-			headers: authHeaders,
-			body: reqBody,
-		});
-		assertApiSuccess(statusCode, body, this.getNode());
+		const items = await apiRequestAllItems.call(
+			this,
+			{ url: `${baseUrl}/v2/deslocamentos/percursos/list`, headers: authHeaders, body: reqBody, returnAll, limit },
+			this.getNode(),
+		);
 
-		return this.helpers.returnJsonArray(toList(body));
+		return this.helpers.returnJsonArray(items);
 	}
 
 	throw new NodeOperationError(this.getNode(), `Unknown operation: ${operation}`);

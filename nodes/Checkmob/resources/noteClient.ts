@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, assertApiSuccess, toList } from '../transport';
+import { apiRequest, apiRequestAllItems, assertApiSuccess } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -28,20 +28,21 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['noteClient'], operation: ['list', 'post'] } },
 	},
 	{
-		displayName: 'Page',
-		name: 'page',
-		type: 'number',
-		default: 1,
-		typeOptions: { minValue: 1 },
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
 		displayOptions: { show: { resource: ['noteClient'], operation: ['list'] } },
+		description: 'Whether to return all results or only up to a given limit',
 	},
 	{
-		displayName: 'Per Page',
-		name: 'perPage',
+		displayName: 'Limit',
+		name: 'limit',
 		type: 'number',
-		default: 25,
-		typeOptions: { minValue: 1, maxValue: 100 },
-		displayOptions: { show: { resource: ['noteClient'], operation: ['list'] } },
+		default: 50,
+		typeOptions: { minValue: 1 },
+		displayOptions: { show: { resource: ['noteClient'], operation: ['list'], returnAll: [false] } },
+		description: 'Max number of results to return',
 	},
 
 	// ── Create ───────────────────────────────────────────────────────────────────
@@ -76,18 +77,22 @@ export async function execute(
 
 	if (operation === 'list') {
 		const idClient = this.getNodeParameter('noteClientId', i) as number;
-		const page = this.getNodeParameter('page', i, 1) as number;
-		const perPage = this.getNodeParameter('perPage', i, 25) as number;
+		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+		const limit = this.getNodeParameter('limit', i, 50) as number;
 
-		const { statusCode, body } = await apiRequest.call(this, {
-			method: 'POST',
-			url: `${baseUrl}/v2/clientes/${idClient}/notas/list`,
-			headers: authHeaders,
-			body: { pagina: page, por_pagina: perPage },
-		});
-		assertApiSuccess(statusCode, body, this.getNode());
+		const items = await apiRequestAllItems.call(
+			this,
+			{
+				url: `${baseUrl}/v2/clientes/${idClient}/notas/list`,
+				headers: authHeaders,
+				body: {},
+				returnAll,
+				limit,
+			},
+			this.getNode(),
+		);
 
-		return this.helpers.returnJsonArray(toList(body));
+		return this.helpers.returnJsonArray(items);
 	}
 
 	if (operation === 'post') {

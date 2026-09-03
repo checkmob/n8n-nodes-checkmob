@@ -125,7 +125,6 @@ export class Checkmob implements INodeType {
 		credentials: [{ name: 'checkmobApi', required: true }],
 		properties: [
 			resourceSelector,
-			languageSelector,
 			...category.description,
 			...customField.description,
 			...typeService.description,
@@ -147,6 +146,7 @@ export class Checkmob implements INodeType {
 			...checklist.description,
 			...answerChecklist.description,
 			...travel.description,
+			languageSelector,
 		],
 		usableAsTool: true,
 	};

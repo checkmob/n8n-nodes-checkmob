@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, assertApiSuccess, toList } from '../transport';
+import { apiRequest, apiRequestAllItems, assertApiSuccess } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -24,90 +24,41 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['addressClient'], operation: ['get', 'put'] } },
 	},
 	{
-		displayName: 'Page',
-		name: 'page',
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		displayOptions: { show: { resource: ['addressClient'], operation: ['get'] } },
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
 		type: 'number',
-		default: 1,
+		default: 50,
 		typeOptions: { minValue: 1 },
-		displayOptions: { show: { resource: ['addressClient'], operation: ['get'] } },
+		displayOptions: { show: { resource: ['addressClient'], operation: ['get'], returnAll: [false] } },
+		description: 'Max number of results to return',
 	},
 	{
-		displayName: 'Per Page',
-		name: 'perPage',
-		type: 'number',
-		default: 25,
-		typeOptions: { minValue: 1, maxValue: 100 },
-		displayOptions: { show: { resource: ['addressClient'], operation: ['get'] } },
-	},
-	{
-		displayName: 'Description',
-		name: 'addrDescricao',
-		type: 'string',
-		default: '',
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
 		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Street Address',
-		name: 'address',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Number',
-		name: 'number',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Complement',
-		name: 'complement',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Neighborhood',
-		name: 'neighborhood',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
-	},
-	{
-		displayName: 'ZIP Code',
-		name: 'zipCode',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
-	},
-	{
-		displayName: 'City',
-		name: 'city',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
-	},
-	{
-		displayName: 'State',
-		name: 'state',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Latitude',
-		name: 'latitude',
-		type: 'number',
-		default: 0,
-		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
-	},
-	{
-		displayName: 'Longitude',
-		name: 'longitude',
-		type: 'number',
-		default: 0,
-		displayOptions: { show: { resource: ['addressClient'], operation: ['put'] } },
+		options: [
+			{ displayName: 'City', name: 'city', type: 'string', default: '' },
+			{ displayName: 'Complement', name: 'complement', type: 'string', default: '' },
+			{ displayName: 'Description', name: 'addrDescricao', type: 'string', default: '' },
+			{ displayName: 'Latitude', name: 'latitude', type: 'number', default: 0 },
+			{ displayName: 'Longitude', name: 'longitude', type: 'number', default: 0 },
+			{ displayName: 'Neighborhood', name: 'neighborhood', type: 'string', default: '' },
+			{ displayName: 'Number', name: 'number', type: 'string', default: '' },
+			{ displayName: 'State', name: 'state', type: 'string', default: '' },
+			{ displayName: 'Street Address', name: 'address', type: 'string', default: '' },
+			{ displayName: 'ZIP Code', name: 'zipCode', type: 'string', default: '' },
+		],
 	},
 ];
 
@@ -121,34 +72,40 @@ export async function execute(
 
 	if (operation === 'get') {
 		const addrClientId = this.getNodeParameter('addrClientId', i) as number;
-		const page = this.getNodeParameter('page', i, 1) as number;
-		const perPage = this.getNodeParameter('perPage', i, 25) as number;
+		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+		const limit = this.getNodeParameter('limit', i, 50) as number;
 
-		const { statusCode, body } = await apiRequest.call(this, {
-			method: 'GET',
-			url: `${baseUrl}/v2/clientes/${addrClientId}/endereco`,
-			headers: authHeaders,
-			qs: { pagina: page, por_pagina: perPage },
-		});
-		assertApiSuccess(statusCode, body, this.getNode());
+		const items = await apiRequestAllItems.call(
+			this,
+			{
+				method: 'GET',
+				url: `${baseUrl}/v2/clientes/${addrClientId}/endereco`,
+				headers: authHeaders,
+				qs: {},
+				returnAll,
+				limit,
+			},
+			this.getNode(),
+		);
 
-		return this.helpers.returnJsonArray(toList(body));
+		return this.helpers.returnJsonArray(items);
 	}
 
 	if (operation === 'put') {
 		const addrClientId = this.getNodeParameter('addrClientId', i) as number;
+		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 		const reqBody: IDataObject = {
 			id_cliente: addrClientId,
-			descricao: this.getNodeParameter('addrDescricao', i, '') as string,
-			logradouro: this.getNodeParameter('address', i, '') as string,
-			numero: this.getNodeParameter('number', i, '') as string,
-			complemento: this.getNodeParameter('complement', i, '') as string,
-			bairro: this.getNodeParameter('neighborhood', i, '') as string,
-			cep: this.getNodeParameter('zipCode', i, '') as string,
-			cidade: this.getNodeParameter('city', i, '') as string,
-			estado: this.getNodeParameter('state', i, '') as string,
-			latitude: this.getNodeParameter('latitude', i, 0) as number,
-			longitude: this.getNodeParameter('longitude', i, 0) as number,
+			descricao: (additionalFields.addrDescricao as string) ?? '',
+			logradouro: (additionalFields.address as string) ?? '',
+			numero: (additionalFields.number as string) ?? '',
+			complemento: (additionalFields.complement as string) ?? '',
+			bairro: (additionalFields.neighborhood as string) ?? '',
+			cep: (additionalFields.zipCode as string) ?? '',
+			cidade: (additionalFields.city as string) ?? '',
+			estado: (additionalFields.state as string) ?? '',
+			latitude: (additionalFields.latitude as number) ?? 0,
+			longitude: (additionalFields.longitude as number) ?? 0,
 		};
 
 		const { statusCode, body } = await apiRequest.call(this, {

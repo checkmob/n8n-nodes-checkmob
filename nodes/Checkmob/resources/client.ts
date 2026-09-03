@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, assertApiSuccess, toList, toNumArray, parseJson } from '../transport';
+import { apiRequest, apiRequestAllItems, assertApiSuccess, toNumArray, parseJson } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -25,51 +25,35 @@ export const description: INodeProperties[] = [
 
 	// ── List ──────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Page',
-		name: 'page',
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
 		type: 'number',
-		default: 1,
+		default: 50,
 		typeOptions: { minValue: 1 },
-		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
-		description: 'Page to fetch (starts at 1)',
+		displayOptions: { show: { resource: ['client'], operation: ['list'], returnAll: [false] } },
+		description: 'Max number of results to return',
 	},
 	{
-		displayName: 'Per Page',
-		name: 'perPage',
-		type: 'number',
-		default: 25,
-		typeOptions: { minValue: 1, maxValue: 100 },
-		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
-		description: 'Items per page (maximum 100)',
-	},
-	{
-		displayName: 'Search',
-		name: 'search',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
-		description: 'Text search by name, code, or document',
-	},
-	{
-		displayName: 'Active',
-		name: 'clientActive',
-		type: 'options',
-		options: [
-			{ name: 'All', value: 'all' },
-			{ name: 'Active', value: 'true' },
-			{ name: 'Inactive', value: 'false' },
-		],
-		default: 'all',
-		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
-	},
-	{
-		displayName: 'Additional Filters',
-		name: 'clientListFilters',
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
 		type: 'collection',
-		placeholder: 'Add filter',
+		placeholder: 'Add Field',
 		default: {},
 		displayOptions: { show: { resource: ['client'], operation: ['list'] } },
 		options: [
+			{ displayName: 'Active', name: 'clientActive', type: 'options', options: [
+				{ name: 'All', value: 'all' },
+				{ name: 'Active', value: 'true' },
+				{ name: 'Inactive', value: 'false' },
+			], default: 'all' },
 			{ displayName: 'Category IDs (Comma-Separated)', name: 'ids_categoria', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Codes (Comma-Separated)', name: 'codigos', type: 'string', default: '', placeholder: 'A001,A002' },
 			{ displayName: 'Created After', name: 'data_criacao_apos', type: 'dateTime', default: '' },
@@ -77,6 +61,7 @@ export const description: INodeProperties[] = [
 			{ displayName: 'Document', name: 'documento', type: 'string', default: '' },
 			{ displayName: 'IDs (Comma-Separated)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Market Sector IDs (Comma-Separated)', name: 'ids_setor_mercado', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Search', name: 'search', type: 'string', default: '', description: 'Text search by name, code, or document' },
 			{ displayName: 'Segment IDs (Comma-Separated)', name: 'ids_segmento', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Stage IDs (Comma-Separated)', name: 'ids_etapa', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Temperature IDs (Comma-Separated)', name: 'ids_temperatura', type: 'string', default: '', placeholder: '1,2,3' },
@@ -96,18 +81,6 @@ export const description: INodeProperties[] = [
 
 	// ── Create / Replace / Update Partially ────────────────────────────────
 	{
-		displayName: 'Type',
-		name: 'clientTipo',
-		type: 'options',
-		options: [
-			{ name: 'Individual', value: 'F' },
-			{ name: 'Company', value: 'J' },
-			{ name: 'Foreign', value: 'N' },
-		],
-		default: 'J',
-		displayOptions: { show: { resource: ['client'], operation: ['post', 'put'] } },
-	},
-	{
 		displayName: 'Name',
 		name: 'clientName',
 		type: 'string',
@@ -116,19 +89,38 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['client'], operation: ['post', 'put'] } },
 	},
 	{
-		displayName: 'Document',
-		name: 'clientDocumento',
-		type: 'string',
-		default: '',
+		displayName: 'Additional Fields',
+		name: 'clientCreateFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
 		displayOptions: { show: { resource: ['client'], operation: ['post', 'put'] } },
-		description: 'CPF, CNPJ, or foreign document',
-	},
-	{
-		displayName: 'Active',
-		name: 'clientAtivo',
-		type: 'boolean',
-		default: true,
-		displayOptions: { show: { resource: ['client'], operation: ['post', 'put'] } },
+		options: [
+			{
+				displayName: 'Active',
+				name: 'clientAtivo',
+				type: 'boolean',
+				default: true,
+			},
+			{
+				displayName: 'Document',
+				name: 'clientDocumento',
+				type: 'string',
+				default: '',
+				description: 'CPF, CNPJ, or foreign document',
+			},
+			{
+				displayName: 'Type',
+				name: 'clientTipo',
+				type: 'options',
+				options: [
+					{ name: 'Individual', value: 'F' },
+					{ name: 'Company', value: 'J' },
+					{ name: 'Foreign', value: 'N' },
+				],
+				default: 'J',
+			},
+		],
 	},
 	{
 		displayName: 'Fields to Update',
@@ -197,15 +189,15 @@ export async function execute(
 	const operation = this.getNodeParameter('operation', i) as string;
 
 	if (operation === 'list') {
-		const page = this.getNodeParameter('page', i, 1) as number;
-		const perPage = this.getNodeParameter('perPage', i, 25) as number;
-		const search = this.getNodeParameter('search', i, '') as string;
-		const activeParam = this.getNodeParameter('clientActive', i, 'all') as string;
-		const filters = this.getNodeParameter('clientListFilters', i, {}) as IDataObject;
+		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+		const limit = this.getNodeParameter('limit', i, 50) as number;
+		const filters = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 
-		const reqBody: IDataObject = { pagina: page, por_pagina: perPage };
-		if (search.trim()) reqBody.busca = search;
-		if (activeParam !== 'all') reqBody.ativo = activeParam === 'true';
+		const reqBody: IDataObject = {};
+		if (typeof filters.search === 'string' && filters.search.trim()) reqBody.busca = filters.search;
+		if (typeof filters.clientActive === 'string' && filters.clientActive !== 'all') {
+			reqBody.ativo = filters.clientActive === 'true';
+		}
 
 		if (typeof filters.ids === 'string' && filters.ids.trim()) reqBody.ids = toNumArray(filters.ids);
 		if (typeof filters.codigos === 'string' && filters.codigos.trim()) {
@@ -220,15 +212,13 @@ export async function execute(
 		if (filters.data_criacao_antes) reqBody.data_criacao_antes = filters.data_criacao_antes;
 		if (filters.atualizado_apos) reqBody.atualizado_apos = filters.atualizado_apos;
 
-		const { statusCode, body } = await apiRequest.call(this, {
-			method: 'POST',
-			url: `${baseUrl}/v2/clientes/list`,
-			headers: authHeaders,
-			body: reqBody,
-		});
-		assertApiSuccess(statusCode, body, this.getNode());
+		const items = await apiRequestAllItems.call(
+			this,
+			{ url: `${baseUrl}/v2/clientes/list`, headers: authHeaders, body: reqBody, returnAll, limit },
+			this.getNode(),
+		);
 
-		return this.helpers.returnJsonArray(toList(body));
+		return this.helpers.returnJsonArray(items);
 	}
 
 	if (operation === 'get') {
@@ -245,10 +235,11 @@ export async function execute(
 	}
 
 	if (operation === 'post') {
-		const tipo = this.getNodeParameter('clientTipo', i) as string;
 		const nome = this.getNodeParameter('clientName', i) as string;
-		const documento = this.getNodeParameter('clientDocumento', i, '') as string;
-		const ativo = this.getNodeParameter('clientAtivo', i, true) as boolean;
+		const additionalFields = this.getNodeParameter('clientCreateFields', i, {}) as IDataObject;
+		const tipo = (additionalFields.clientTipo as string) ?? 'J';
+		const ativo = (additionalFields.clientAtivo as boolean) ?? true;
+		const documento = (additionalFields.clientDocumento as string) ?? '';
 
 		const reqBody: IDataObject = { tipo, nome, ativo };
 		if (documento) reqBody.documento = documento;
@@ -282,10 +273,11 @@ export async function execute(
 
 	if (operation === 'put') {
 		const id = this.getNodeParameter('clientId', i) as number;
-		const tipo = this.getNodeParameter('clientTipo', i) as string;
 		const nome = this.getNodeParameter('clientName', i) as string;
-		const documento = this.getNodeParameter('clientDocumento', i, '') as string;
-		const ativo = this.getNodeParameter('clientAtivo', i, true) as boolean;
+		const additionalFields = this.getNodeParameter('clientCreateFields', i, {}) as IDataObject;
+		const tipo = (additionalFields.clientTipo as string) ?? 'J';
+		const ativo = (additionalFields.clientAtivo as boolean) ?? true;
+		const documento = (additionalFields.clientDocumento as string) ?? '';
 
 		const reqBody: IDataObject = { tipo, nome, ativo };
 		if (documento) reqBody.documento = documento;

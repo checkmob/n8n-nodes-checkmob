@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
+import { apiRequest, apiRequestAllItems, assertApiSuccess, toList, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -24,33 +24,27 @@ export const description: INodeProperties[] = [
 
 	// ── List ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Page',
-		name: 'page',
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		displayOptions: { show: { resource: ['serviceOrder'], operation: ['list'] } },
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
 		type: 'number',
-		default: 1,
+		default: 50,
 		typeOptions: { minValue: 1 },
-		displayOptions: { show: { resource: ['serviceOrder'], operation: ['list'] } },
+		displayOptions: { show: { resource: ['serviceOrder'], operation: ['list'], returnAll: [false] } },
+		description: 'Max number of results to return',
 	},
 	{
-		displayName: 'Per Page',
-		name: 'perPage',
-		type: 'number',
-		default: 25,
-		typeOptions: { minValue: 1, maxValue: 100 },
-		displayOptions: { show: { resource: ['serviceOrder'], operation: ['list'] } },
-	},
-	{
-		displayName: 'Search',
-		name: 'search',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['serviceOrder'], operation: ['list'] } },
-	},
-	{
-		displayName: 'Additional Filters',
+		displayName: 'Additional Fields',
 		name: 'soListFilters',
 		type: 'collection',
-		placeholder: 'Add Filter',
+		placeholder: 'Add Field',
 		default: {},
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['list'] } },
 		options: [
@@ -80,6 +74,7 @@ export const description: INodeProperties[] = [
 			{ displayName: 'Minimum Priority', name: 'prioridade_min', type: 'number', default: 0 },
 			{ displayName: 'Scheduled After', name: 'data_agendada_apos', type: 'dateTime', default: '' },
 			{ displayName: 'Scheduled Before', name: 'data_agendada_antes', type: 'dateTime', default: '' },
+			{ displayName: 'Search', name: 'search', type: 'string', default: '' },
 			{ displayName: 'Segment IDs (Comma-Separated)', name: 'ids_segmento', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Service Type IDs (Comma-Separated)', name: 'ids_tipo_servico', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Status IDs (Comma-Separated)', name: 'ids_status', type: 'string', default: '', placeholder: '1,2,3' },
@@ -116,14 +111,7 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['serviceOrder'], operation: ['post', 'put'] } },
 	},
 	{
-		displayName: 'Name',
-		name: 'soName',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['serviceOrder'], operation: ['post', 'put'] } },
-	},
-	{
-		displayName: 'Optional Fields',
+		displayName: 'Additional Fields',
 		name: 'soOptional',
 		type: 'collection',
 		placeholder: 'Add Field',
@@ -136,21 +124,15 @@ export const description: INodeProperties[] = [
 			{ displayName: 'Contact ID', name: 'id_contato', type: 'number', default: 0 },
 			{ displayName: 'Created for Me', name: 'criada_para_mim', type: 'boolean', default: false },
 			{ displayName: 'Group ID', name: 'id_grupo', type: 'number', default: 0 },
+			{ displayName: 'Name', name: 'nome', type: 'string', default: '' },
 			{ displayName: 'Priority', name: 'prioridade', type: 'number', default: 0 },
 			{ displayName: 'Requires Completion Checklist', name: 'exige_checklist_conclusao', type: 'boolean', default: false },
 			{ displayName: 'Scheduled Date', name: 'data_agendada', type: 'dateTime', default: '' },
 			{ displayName: 'Scheduled Start', name: 'inicio_agendado', type: 'dateTime', default: '' },
 			{ displayName: 'Segment ID', name: 'id_segmento', type: 'number', default: 0 },
 			{ displayName: 'Service Type ID', name: 'id_tipo_servico', type: 'number', default: 0 },
+			{ displayName: 'User IDs (Comma-Separated)', name: 'ids_usuarios', type: 'string', default: '', placeholder: '1,2,3' },
 		],
-	},
-	{
-		displayName: 'User IDs (Comma-Separated)',
-		name: 'soIdsUsers',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['serviceOrder'], operation: ['post', 'put'] } },
-		placeholder: '1,2,3',
 	},
 
 	// ── Delete Bulk ──────────────────────────────────────────────────────────
@@ -193,13 +175,12 @@ export async function execute(
 	const operation = this.getNodeParameter('operation', i) as string;
 
 	if (operation === 'list') {
-		const page = this.getNodeParameter('page', i, 1) as number;
-		const perPage = this.getNodeParameter('perPage', i, 25) as number;
-		const search = this.getNodeParameter('search', i, '') as string;
+		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+		const limit = this.getNodeParameter('limit', i, 50) as number;
 		const filters = this.getNodeParameter('soListFilters', i, {}) as IDataObject;
 
-		const reqBody: IDataObject = { pagina: page, por_pagina: perPage };
-		if (search.trim()) reqBody.busca = search;
+		const reqBody: IDataObject = {};
+		if (typeof filters.search === 'string' && filters.search.trim()) reqBody.busca = filters.search;
 		if (filters.id_cliente) reqBody.id_cliente = filters.id_cliente;
 		if (filters.codigo) reqBody.codigo = filters.codigo;
 		if (typeof filters.concluida === 'string' && filters.concluida !== 'all') reqBody.concluida = filters.concluida === 'true';
@@ -214,15 +195,13 @@ export async function execute(
 		if (filters.prioridade_min) reqBody.prioridade_min = filters.prioridade_min;
 		if (filters.prioridade_max) reqBody.prioridade_max = filters.prioridade_max;
 
-		const { statusCode, body } = await apiRequest.call(this, {
-			method: 'POST',
-			url: `${baseUrl}/v2/ordens-servico/list`,
-			headers: authHeaders,
-			body: reqBody,
-		});
-		assertApiSuccess(statusCode, body, this.getNode());
+		const items = await apiRequestAllItems.call(
+			this,
+			{ url: `${baseUrl}/v2/ordens-servico/list`, headers: authHeaders, body: reqBody, returnAll, limit },
+			this.getNode(),
+		);
 
-		return this.helpers.returnJsonArray(toList(body));
+		return this.helpers.returnJsonArray(items);
 	}
 
 	if (operation === 'get') {
@@ -240,13 +219,11 @@ export async function execute(
 
 	if (operation === 'post' || operation === 'put') {
 		const idCliente = this.getNodeParameter('soIdCliente', i) as number;
-		const nome = this.getNodeParameter('soName', i, '') as string;
 		const optional = this.getNodeParameter('soOptional', i, {}) as IDataObject;
-		const idsUsersRaw = this.getNodeParameter('soIdsUsers', i, '') as string;
+		const { ids_usuarios: idsUsersRaw, ...restOptional } = optional;
 
-		const reqBody: IDataObject = { id_cliente: idCliente, ...optional };
-		if (nome) reqBody.nome = nome;
-		if (idsUsersRaw.trim()) reqBody.ids_usuarios = toNumArray(idsUsersRaw);
+		const reqBody: IDataObject = { id_cliente: idCliente, ...restOptional };
+		if (typeof idsUsersRaw === 'string' && idsUsersRaw.trim()) reqBody.ids_usuarios = toNumArray(idsUsersRaw);
 
 		if (operation === 'post') {
 			const { statusCode, body } = await apiRequest.call(this, {

@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
+import { apiRequest, apiRequestAllItems, assertApiSuccess, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -30,26 +30,27 @@ export const description: INodeProperties[] = [
 
 	// ── List ─────────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Page',
-		name: 'page',
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		displayOptions: { show: { resource: ['service'], operation: ['list'] } },
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
 		type: 'number',
-		default: 1,
+		default: 50,
 		typeOptions: { minValue: 1 },
-		displayOptions: { show: { resource: ['service'], operation: ['list'] } },
+		displayOptions: { show: { resource: ['service'], operation: ['list'], returnAll: [false] } },
+		description: 'Max number of results to return',
 	},
 	{
-		displayName: 'Per Page',
-		name: 'perPage',
-		type: 'number',
-		default: 25,
-		typeOptions: { minValue: 1, maxValue: 100 },
-		displayOptions: { show: { resource: ['service'], operation: ['list'] } },
-	},
-	{
-		displayName: 'Filters',
+		displayName: 'Additional Fields',
 		name: 'svcFilters',
 		type: 'collection',
-		placeholder: 'Add filter',
+		placeholder: 'Add Field',
 		default: {},
 		displayOptions: { show: { resource: ['service'], operation: ['list'] } },
 		options: [
@@ -135,10 +136,10 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['service'], operation: ['post'] } },
 	},
 	{
-		displayName: 'Optional Fields',
+		displayName: 'Additional Fields',
 		name: 'svcPostOptional',
 		type: 'collection',
-		placeholder: 'Add field',
+		placeholder: 'Add Field',
 		default: {},
 		displayOptions: { show: { resource: ['service'], operation: ['post'] } },
 		options: [
@@ -201,11 +202,11 @@ export async function execute(
 	}
 
 	if (operation === 'list') {
-		const page = this.getNodeParameter('page', i, 1) as number;
-		const perPage = this.getNodeParameter('perPage', i, 25) as number;
+		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+		const limit = this.getNodeParameter('limit', i, 50) as number;
 		const filters = this.getNodeParameter('svcFilters', i, {}) as IDataObject;
 
-		const reqBody: IDataObject = { pagina: page, por_pagina: perPage };
+		const reqBody: IDataObject = {};
 		if (typeof filters.busca === 'string' && filters.busca.trim()) reqBody.busca = filters.busca;
 		if (filters.codigo) reqBody.codigo = filters.codigo;
 		if (filters.id_ordem_servico) reqBody.id_ordem_servico = filters.id_ordem_servico;
@@ -221,15 +222,13 @@ export async function execute(
 			if (filters[key]) reqBody[key] = filters[key];
 		}
 
-		const { statusCode, body } = await apiRequest.call(this, {
-			method: 'POST',
-			url: `${baseUrl}/v2/registros/list`,
-			headers: authHeaders,
-			body: reqBody,
-		});
-		assertApiSuccess(statusCode, body, this.getNode());
+		const items = await apiRequestAllItems.call(
+			this,
+			{ url: `${baseUrl}/v2/registros/list`, headers: authHeaders, body: reqBody, returnAll, limit },
+			this.getNode(),
+		);
 
-		return this.helpers.returnJsonArray(toList(body));
+		return this.helpers.returnJsonArray(items);
 	}
 
 	if (operation === 'post') {

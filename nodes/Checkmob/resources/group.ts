@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
+import { apiRequest, apiRequestAllItems, assertApiSuccess, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -21,47 +21,53 @@ export const description: INodeProperties[] = [
 
 	// ── List ───────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Page',
-		name: 'page',
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
 		type: 'number',
-		default: 1,
+		default: 50,
 		typeOptions: { minValue: 1 },
-		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
-		description: 'Page to fetch (starts at 1)',
+		displayOptions: { show: { resource: ['group'], operation: ['list'], returnAll: [false] } },
+		description: 'Max number of results to return',
 	},
 	{
-		displayName: 'Per Page',
-		name: 'perPage',
-		type: 'number',
-		default: 25,
-		typeOptions: { minValue: 1, maxValue: 100 },
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
 		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
-		description: 'Items per page (maximum 100)',
-	},
-	{
-		displayName: 'Search',
-		name: 'search',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
-		description: 'Text search by name or keyword',
-	},
-	{
-		displayName: 'User IDs (Comma-Separated)',
-		name: 'groupFilterIdsUser',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
-		description: 'Filter groups that contain these users. E.g.: 1,2,3.',
-		placeholder: '1,2,3',
-	},
-	{
-		displayName: 'Updated After',
-		name: 'updatedAfter',
-		type: 'dateTime',
-		default: '',
-		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
-		description: 'Incremental sync: returns only records updated after this date',
+		options: [
+			{
+				displayName: 'Search',
+				name: 'search',
+				type: 'string',
+				default: '',
+				description: 'Text search by name or keyword',
+			},
+			{
+				displayName: 'User IDs (Comma-Separated)',
+				name: 'groupFilterIdsUser',
+				type: 'string',
+				default: '',
+				description: 'Filter groups that contain these users. E.g.: 1,2,3.',
+				placeholder: '1,2,3',
+			},
+			{
+				displayName: 'Updated After',
+				name: 'updatedAfter',
+				type: 'dateTime',
+				default: '',
+				description: 'Incremental sync: returns only records updated after this date',
+			},
+		],
 	},
 
 	// ── Get / Update / Delete ───────────────────────────────────────────────
@@ -85,21 +91,29 @@ export const description: INodeProperties[] = [
 		description: 'Group name',
 	},
 	{
-		displayName: 'User IDs (Comma-Separated)',
-		name: 'groupIdsUser',
-		type: 'string',
-		default: '',
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
 		displayOptions: { show: { resource: ['group'], operation: ['post', 'put'] } },
-		description: 'IDs of the users that belong to the group. E.g.: 1,2,3.',
-		placeholder: '1,2,3',
-	},
-	{
-		displayName: 'Source ID',
-		name: 'groupIdOrigem',
-		type: 'number',
-		default: 0,
-		displayOptions: { show: { resource: ['group'], operation: ['post', 'put'] } },
-		description: 'Source ID of the group (optional)',
+		options: [
+			{
+				displayName: 'User IDs (Comma-Separated)',
+				name: 'groupIdsUser',
+				type: 'string',
+				default: '',
+				description: 'IDs of the users that belong to the group. E.g.: 1,2,3.',
+				placeholder: '1,2,3',
+			},
+			{
+				displayName: 'Source ID',
+				name: 'groupIdOrigem',
+				type: 'number',
+				default: 0,
+				description: 'Source ID of the group (optional)',
+			},
+		],
 	},
 ];
 
@@ -112,26 +126,26 @@ export async function execute(
 	const operation = this.getNodeParameter('operation', i) as string;
 
 	if (operation === 'list') {
-		const page = this.getNodeParameter('page', i, 1) as number;
-		const perPage = this.getNodeParameter('perPage', i, 25) as number;
-		const search = this.getNodeParameter('search', i, '') as string;
-		const idsUserRaw = this.getNodeParameter('groupFilterIdsUser', i, '') as string;
-		const updatedAfter = this.getNodeParameter('updatedAfter', i, '') as string;
+		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+		const limit = this.getNodeParameter('limit', i, 50) as number;
+		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 
-		const reqBody: IDataObject = { pagina: page, por_pagina: perPage };
-		if (search.trim()) reqBody.busca = search;
-		if (idsUserRaw.trim()) reqBody.ids_usuario = toNumArray(idsUserRaw);
-		if (updatedAfter) reqBody.atualizado_apos = updatedAfter;
+		const reqBody: IDataObject = {};
+		if (typeof additionalFields.search === 'string' && additionalFields.search.trim()) {
+			reqBody.busca = additionalFields.search;
+		}
+		if (typeof additionalFields.groupFilterIdsUser === 'string' && additionalFields.groupFilterIdsUser.trim()) {
+			reqBody.ids_usuario = toNumArray(additionalFields.groupFilterIdsUser);
+		}
+		if (additionalFields.updatedAfter) reqBody.atualizado_apos = additionalFields.updatedAfter;
 
-		const { statusCode, body } = await apiRequest.call(this, {
-			method: 'POST',
-			url: `${baseUrl}/v2/grupos/list`,
-			headers: authHeaders,
-			body: reqBody,
-		});
-		assertApiSuccess(statusCode, body, this.getNode());
+		const items = await apiRequestAllItems.call(
+			this,
+			{ url: `${baseUrl}/v2/grupos/list`, headers: authHeaders, body: reqBody, returnAll, limit },
+			this.getNode(),
+		);
 
-		return this.helpers.returnJsonArray(toList(body));
+		return this.helpers.returnJsonArray(items);
 	}
 
 	if (operation === 'get') {
@@ -149,12 +163,13 @@ export async function execute(
 
 	if (operation === 'post') {
 		const nome = this.getNodeParameter('groupName', i) as string;
-		const idsUserRaw = this.getNodeParameter('groupIdsUser', i, '') as string;
-		const idOrigem = this.getNodeParameter('groupIdOrigem', i, 0) as number;
+		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 
 		const reqBody: IDataObject = { nome };
-		if (idsUserRaw.trim()) reqBody.ids_usuarios = toNumArray(idsUserRaw);
-		if (idOrigem) reqBody.id_origem = idOrigem;
+		if (typeof additionalFields.groupIdsUser === 'string' && additionalFields.groupIdsUser.trim()) {
+			reqBody.ids_usuarios = toNumArray(additionalFields.groupIdsUser);
+		}
+		if (additionalFields.groupIdOrigem) reqBody.id_origem = additionalFields.groupIdOrigem;
 
 		const { statusCode, body } = await apiRequest.call(this, {
 			method: 'POST',
@@ -170,12 +185,13 @@ export async function execute(
 	if (operation === 'put') {
 		const id = this.getNodeParameter('groupId', i) as number;
 		const nome = this.getNodeParameter('groupName', i) as string;
-		const idsUserRaw = this.getNodeParameter('groupIdsUser', i, '') as string;
-		const idOrigem = this.getNodeParameter('groupIdOrigem', i, 0) as number;
+		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 
 		const reqBody: IDataObject = { nome };
-		if (idsUserRaw.trim()) reqBody.ids_usuarios = toNumArray(idsUserRaw);
-		if (idOrigem) reqBody.id_origem = idOrigem;
+		if (typeof additionalFields.groupIdsUser === 'string' && additionalFields.groupIdsUser.trim()) {
+			reqBody.ids_usuarios = toNumArray(additionalFields.groupIdsUser);
+		}
+		if (additionalFields.groupIdOrigem) reqBody.id_origem = additionalFields.groupIdOrigem;
 
 		const { statusCode, body } = await apiRequest.call(this, {
 			method: 'PUT',

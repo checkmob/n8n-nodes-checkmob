@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-checkmob",
-  "version": "1.1.19",
+  "version": "1.1.20",
   "description": "n8n community node for Checkmob — field service management platform",
   "keywords": [
     "n8n-community-node-package",

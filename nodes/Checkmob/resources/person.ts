@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, assertApiSuccess, toList, toNumArray } from '../transport';
+import { apiRequest, apiRequestAllItems, assertApiSuccess, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -24,51 +24,39 @@ export const description: INodeProperties[] = [
 
 	// ── List ─────────────────────────────────────────────────────────────────────
 	{
-		displayName: 'Page',
-		name: 'page',
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		default: false,
+		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
+		description: 'Whether to return all results or only up to a given limit',
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
 		type: 'number',
-		default: 1,
+		default: 50,
 		typeOptions: { minValue: 1 },
-		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
+		displayOptions: { show: { resource: ['person'], operation: ['list'], returnAll: [false] } },
+		description: 'Max number of results to return',
 	},
 	{
-		displayName: 'Per Page',
-		name: 'perPage',
-		type: 'number',
-		default: 25,
-		typeOptions: { minValue: 1, maxValue: 100 },
-		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
-	},
-	{
-		displayName: 'Search',
-		name: 'search',
-		type: 'string',
-		default: '',
-		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
-	},
-	{
-		displayName: 'Active',
-		name: 'personActive',
-		type: 'options',
-		options: [
-			{ name: 'All', value: 'all' },
-			{ name: 'Active', value: 'true' },
-			{ name: 'Inactive', value: 'false' },
-		],
-		default: 'all',
-		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
-	},
-	{
-		displayName: 'Additional Filters',
+		displayName: 'Additional Fields',
 		name: 'personListFilters',
 		type: 'collection',
-		placeholder: 'Add filter',
+		placeholder: 'Add Field',
 		default: {},
 		displayOptions: { show: { resource: ['person'], operation: ['list'] } },
 		options: [
+			{ displayName: 'Active', name: 'personActive', type: 'options', options: [
+				{ name: 'All', value: 'all' },
+				{ name: 'Active', value: 'true' },
+				{ name: 'Inactive', value: 'false' },
+			], default: 'all' },
+			{ displayName: 'Client IDs (Comma-Separated)', name: 'ids_clientes', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Email', name: 'email', type: 'string', default: '', placeholder: 'name@email.com' },
 			{ displayName: 'IDs (Comma-Separated)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
-			{ displayName: 'Client IDs (Comma-Separated)', name: 'ids_clientes', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Search', name: 'search', type: 'string', default: '' },
 			{ displayName: 'Updated After', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Incremental sync' },
 		],
 	},
@@ -182,15 +170,15 @@ export async function execute(
 	const operation = this.getNodeParameter('operation', i) as string;
 
 	if (operation === 'list') {
-		const page = this.getNodeParameter('page', i, 1) as number;
-		const perPage = this.getNodeParameter('perPage', i, 25) as number;
-		const search = this.getNodeParameter('search', i, '') as string;
-		const activeParam = this.getNodeParameter('personActive', i, 'all') as string;
+		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
+		const limit = this.getNodeParameter('limit', i, 50) as number;
 		const filters = this.getNodeParameter('personListFilters', i, {}) as IDataObject;
 
-		const reqBody: IDataObject = { pagina: page, por_pagina: perPage };
-		if (search.trim()) reqBody.busca = search;
-		if (activeParam !== 'all') reqBody.ativo = activeParam === 'true';
+		const reqBody: IDataObject = {};
+		if (typeof filters.search === 'string' && filters.search.trim()) reqBody.busca = filters.search;
+		if (typeof filters.personActive === 'string' && filters.personActive !== 'all') {
+			reqBody.ativo = filters.personActive === 'true';
+		}
 		if (typeof filters.email === 'string' && filters.email.trim()) reqBody.email = filters.email;
 		if (typeof filters.ids === 'string' && filters.ids.trim()) reqBody.ids = toNumArray(filters.ids);
 		if (typeof filters.ids_clientes === 'string' && filters.ids_clientes.trim()) {
@@ -198,15 +186,13 @@ export async function execute(
 		}
 		if (filters.atualizado_apos) reqBody.atualizado_apos = filters.atualizado_apos;
 
-		const { statusCode, body } = await apiRequest.call(this, {
-			method: 'POST',
-			url: `${baseUrl}/v2/pessoas/list`,
-			headers: authHeaders,
-			body: reqBody,
-		});
-		assertApiSuccess(statusCode, body, this.getNode());
+		const items = await apiRequestAllItems.call(
+			this,
+			{ url: `${baseUrl}/v2/pessoas/list`, headers: authHeaders, body: reqBody, returnAll, limit },
+			this.getNode(),
+		);
 
-		return this.helpers.returnJsonArray(toList(body));
+		return this.helpers.returnJsonArray(items);
 	}
 
 	if (operation === 'get') {
