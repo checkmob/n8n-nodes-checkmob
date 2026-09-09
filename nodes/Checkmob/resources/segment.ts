@@ -75,12 +75,6 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['segment'], operation: ['list'] } },
 		options: [
 			{
-				displayName: 'Search',
-				name: 'search',
-				type: 'string',
-				default: '',
-			},
-			{
 				displayName: 'Active',
 				name: 'segActive',
 				type: 'options',
@@ -90,6 +84,27 @@ export const description: INodeProperties[] = [
 					{ name: 'Inactive', value: 'false' },
 				],
 				default: 'all',
+			},
+			{
+				displayName: 'IDs (Comma-Separated)',
+				name: 'ids',
+				type: 'string',
+				default: '',
+				placeholder: '1,2,3',
+			},
+			{
+				displayName: 'Search',
+				name: 'search',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Sort',
+				name: 'sort',
+				type: 'string',
+				default: '',
+				placeholder: 'name,-updated_at',
+				description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.',
 			},
 			{
 				displayName: 'Updated After',
@@ -246,6 +261,12 @@ export async function execute(
 			reqBody.ativo = additionalFields.segActive === 'true';
 		}
 		if (additionalFields.updatedAfter) reqBody.atualizado_apos = additionalFields.updatedAfter;
+		if (typeof additionalFields.ids === 'string' && additionalFields.ids.trim()) {
+			reqBody.ids = toNumArray(additionalFields.ids);
+		}
+		if (typeof additionalFields.sort === 'string' && additionalFields.sort.trim()) {
+			reqBody.ordenar = additionalFields.sort;
+		}
 
 		const items = await apiRequestAllItems.call(
 			this,

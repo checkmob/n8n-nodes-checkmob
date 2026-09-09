@@ -48,9 +48,12 @@ export async function apiRequest(
 
 interface PaginaResultado {
 	dados?: IDataObject[];
-	total?: number;
-	pagina_atual?: number;
-	total_paginas?: number;
+	paginacao?: {
+		pagina?: number;
+		por_pagina?: number;
+		total_itens?: number;
+		total_paginas?: number;
+	};
 }
 
 /**
@@ -59,10 +62,14 @@ interface PaginaResultado {
  * request body; pass `method: 'GET'` for endpoints that page via querystring
  * instead (pagina/por_pagina merged into `qs`).
  *
+ * Checkmob's list responses have the shape { dados: [...], paginacao: { pagina,
+ * por_pagina, total_itens, total_paginas } } — pagination metadata is nested
+ * under `paginacao`, not at the top level.
+ *
  * - returnAll=false: fetches a single page sized to `limit` (capped at the API's
  *   max of 100 per page) and returns up to `limit` items.
- * - returnAll=true: pages through `pagina` 1..total_paginas, concatenating `dados`
- *   until the API reports no further pages (or returns an empty page, as a
+ * - returnAll=true: pages through `pagina` 1..paginacao.total_paginas, concatenating
+ *   `dados` until the API reports no further pages (or returns an empty page, as a
  *   safety net against a malformed total_paginas).
  */
 export async function apiRequestAllItems(
@@ -102,7 +109,7 @@ export async function apiRequestAllItems(
 			return results.slice(0, options.limit ?? 50);
 		}
 
-		const totalPages = pageResult?.total_paginas ?? 1;
+		const totalPages = pageResult?.paginacao?.total_paginas ?? 1;
 		if (items.length === 0 || page >= totalPages) {
 			return results;
 		}

@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, apiRequestAllItems, assertApiSuccess } from '../transport';
+import { apiRequest, apiRequestAllItems, assertApiSuccess, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -47,12 +47,6 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['checklist'], operation: ['list'] } },
 		options: [
 			{
-				displayName: 'Search',
-				name: 'clSearch',
-				type: 'string',
-				default: '',
-			},
-			{
 				displayName: 'Active',
 				name: 'clActive',
 				type: 'options',
@@ -69,6 +63,27 @@ export const description: INodeProperties[] = [
 				type: 'dateTime',
 				default: '',
 				description: 'Returns only checklists that are effective on the given date',
+			},
+			{
+				displayName: 'IDs (Comma-Separated)',
+				name: 'ids',
+				type: 'string',
+				default: '',
+				placeholder: '1,2,3',
+			},
+			{
+				displayName: 'Search',
+				name: 'clSearch',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Sort',
+				name: 'sort',
+				type: 'string',
+				default: '',
+				placeholder: 'name,-updated_at',
+				description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.',
 			},
 		],
 	},
@@ -131,6 +146,12 @@ export async function execute(
 		if (search.trim()) reqBody.busca = search;
 		if (activeParam !== 'all') reqBody.ativo = activeParam === 'true';
 		if (vigenteEm) reqBody.vigente_em = vigenteEm;
+		if (typeof additionalFields.ids === 'string' && additionalFields.ids.trim()) {
+			reqBody.ids = toNumArray(additionalFields.ids);
+		}
+		if (typeof additionalFields.sort === 'string' && additionalFields.sort.trim()) {
+			reqBody.ordenar = additionalFields.sort;
+		}
 
 		const items = await apiRequestAllItems.call(
 			this,

@@ -47,6 +47,14 @@ export const description: INodeProperties[] = [
 				description: 'Text search by name or keyword',
 			},
 			{
+				displayName: 'Sort',
+				name: 'sort',
+				type: 'string',
+				default: '',
+				placeholder: 'name,-updated_at',
+				description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.',
+			},
+			{
 				displayName: 'Updated After',
 				name: 'updatedAfter',
 				type: 'dateTime',
@@ -75,6 +83,9 @@ export async function execute(
 			reqBody.busca = additionalFields.search;
 		}
 		if (additionalFields.updatedAfter) reqBody.atualizado_apos = additionalFields.updatedAfter;
+		if (typeof additionalFields.sort === 'string' && additionalFields.sort.trim()) {
+			reqBody.ordenar = additionalFields.sort;
+		}
 
 		const items = await apiRequestAllItems.call(
 			this,

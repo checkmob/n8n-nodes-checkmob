@@ -69,6 +69,14 @@ export const description: INodeProperties[] = [
 				type: 'string',
 				default: '',
 			},
+			{
+				displayName: 'Sort',
+				name: 'sort',
+				type: 'string',
+				default: '',
+				placeholder: 'name,-updated_at',
+				description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.',
+			},
 		],
 	},
 ];
@@ -105,6 +113,9 @@ export async function execute(
 		if (typeof additionalFields.ids === 'string' && additionalFields.ids.trim()) reqBody.ids = toNumArray(additionalFields.ids);
 		if (typeof additionalFields.ids_grupo === 'string' && additionalFields.ids_grupo.trim()) reqBody.ids_grupo = toNumArray(additionalFields.ids_grupo);
 		if (additionalFields.id_perfil) reqBody.id_perfil = additionalFields.id_perfil;
+		if (typeof additionalFields.sort === 'string' && additionalFields.sort.trim()) {
+			reqBody.ordenar = additionalFields.sort;
+		}
 
 		const items = await apiRequestAllItems.call(
 			this,

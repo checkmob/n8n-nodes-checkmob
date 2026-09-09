@@ -46,11 +46,33 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['group'], operation: ['list'] } },
 		options: [
 			{
+				displayName: 'IDs (Comma-Separated)',
+				name: 'ids',
+				type: 'string',
+				default: '',
+				placeholder: '1,2,3',
+			},
+			{
 				displayName: 'Search',
 				name: 'search',
 				type: 'string',
 				default: '',
 				description: 'Text search by name or keyword',
+			},
+			{
+				displayName: 'Sort',
+				name: 'sort',
+				type: 'string',
+				default: '',
+				placeholder: 'name,-updated_at',
+				description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.',
+			},
+			{
+				displayName: 'Updated After',
+				name: 'updatedAfter',
+				type: 'dateTime',
+				default: '',
+				description: 'Incremental sync: returns only records updated after this date',
 			},
 			{
 				displayName: 'User IDs (Comma-Separated)',
@@ -59,13 +81,6 @@ export const description: INodeProperties[] = [
 				default: '',
 				description: 'Filter groups that contain these users. E.g.: 1,2,3.',
 				placeholder: '1,2,3',
-			},
-			{
-				displayName: 'Updated After',
-				name: 'updatedAfter',
-				type: 'dateTime',
-				default: '',
-				description: 'Incremental sync: returns only records updated after this date',
 			},
 		],
 	},
@@ -134,10 +149,16 @@ export async function execute(
 		if (typeof additionalFields.search === 'string' && additionalFields.search.trim()) {
 			reqBody.busca = additionalFields.search;
 		}
+		if (typeof additionalFields.ids === 'string' && additionalFields.ids.trim()) {
+			reqBody.ids = toNumArray(additionalFields.ids);
+		}
 		if (typeof additionalFields.groupFilterIdsUser === 'string' && additionalFields.groupFilterIdsUser.trim()) {
 			reqBody.ids_usuario = toNumArray(additionalFields.groupFilterIdsUser);
 		}
 		if (additionalFields.updatedAfter) reqBody.atualizado_apos = additionalFields.updatedAfter;
+		if (typeof additionalFields.sort === 'string' && additionalFields.sort.trim()) {
+			reqBody.ordenar = additionalFields.sort;
+		}
 
 		const items = await apiRequestAllItems.call(
 			this,

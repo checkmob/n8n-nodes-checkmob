@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequest, apiRequestAllItems, assertApiSuccess, toNumArray } from '../transport';
+import { apiRequest, apiRequestAllItems, assertApiSuccess, parseJson, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -57,6 +57,7 @@ export const description: INodeProperties[] = [
 			{ displayName: 'Email', name: 'email', type: 'string', default: '', placeholder: 'name@email.com' },
 			{ displayName: 'IDs (Comma-Separated)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Search', name: 'search', type: 'string', default: '' },
+			{ displayName: 'Sort', name: 'sort', type: 'string', default: '', placeholder: 'name,-updated_at', description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.' },
 			{ displayName: 'Updated After', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Incremental sync' },
 		],
 	},
@@ -88,10 +89,18 @@ export const description: INodeProperties[] = [
 		default: {},
 		displayOptions: { show: { resource: ['person'], operation: ['post'] } },
 		options: [
-			{ displayName: 'Email', name: 'email', type: 'string', default: '', placeholder: 'name@email.com' },
-			{ displayName: 'Phone', name: 'telefone', type: 'string', default: '' },
-			{ displayName: 'Mobile Phone', name: 'celular', type: 'string', default: '' },
 			{ displayName: 'Client IDs (Comma-Separated)', name: 'idsClientes', type: 'string', default: '', placeholder: '1,2,3' },
+			{
+				displayName: 'Custom Fields (JSON)',
+				name: 'campos_personalizados',
+				type: 'string',
+				typeOptions: { rows: 4 },
+				default: '',
+				description: 'JSON array of custom field values. E.g.: [{"id_campo":123,"valor":"some text"},{"id_campo":456,"id_opcao":789}].',
+			},
+			{ displayName: 'Email', name: 'email', type: 'string', default: '', placeholder: 'name@email.com' },
+			{ displayName: 'Mobile Phone', name: 'celular', type: 'string', default: '' },
+			{ displayName: 'Phone', name: 'telefone', type: 'string', default: '' },
 		],
 	},
 
@@ -113,6 +122,14 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['person'], operation: ['put'] } },
 		options: [
 			{ displayName: 'Active', name: 'ativo', type: 'boolean', default: true },
+			{
+				displayName: 'Custom Fields (JSON)',
+				name: 'campos_personalizados',
+				type: 'string',
+				typeOptions: { rows: 4 },
+				default: '',
+				description: 'JSON array of custom field values. E.g.: [{"id_campo":123,"valor":"some text"},{"id_campo":456,"id_opcao":789}].',
+			},
 			{ displayName: 'Email', name: 'email', type: 'string', default: '', placeholder: 'name@email.com' },
 			{ displayName: 'Mobile Phone', name: 'celular', type: 'string', default: '' },
 			{ displayName: 'Name', name: 'nome', type: 'string', default: '' },
@@ -185,6 +202,7 @@ export async function execute(
 			reqBody.ids_clientes = toNumArray(filters.ids_clientes);
 		}
 		if (filters.atualizado_apos) reqBody.atualizado_apos = filters.atualizado_apos;
+		if (typeof filters.sort === 'string' && filters.sort.trim()) reqBody.ordenar = filters.sort;
 
 		const items = await apiRequestAllItems.call(
 			this,
@@ -219,6 +237,9 @@ export async function execute(
 		if (typeof fields.idsClientes === 'string' && fields.idsClientes.trim()) {
 			reqBody.ids_clientes = toNumArray(fields.idsClientes);
 		}
+		if (typeof fields.campos_personalizados === 'string' && fields.campos_personalizados.trim()) {
+			reqBody.campos_personalizados = parseJson(fields.campos_personalizados, this.getNode(), 'Custom Fields (JSON)');
+		}
 
 		const { statusCode, body } = await apiRequest.call(this, {
 			method: 'POST',
@@ -235,11 +256,18 @@ export async function execute(
 		const id = this.getNodeParameter('personEditId', i) as number;
 		const fields = this.getNodeParameter('personPutFields', i, {}) as IDataObject;
 
+		const reqBody: IDataObject = { ...fields };
+		if (typeof fields.campos_personalizados === 'string' && fields.campos_personalizados.trim()) {
+			reqBody.campos_personalizados = parseJson(fields.campos_personalizados, this.getNode(), 'Custom Fields (JSON)');
+		} else {
+			delete reqBody.campos_personalizados;
+		}
+
 		const { statusCode, body } = await apiRequest.call(this, {
 			method: 'PUT',
 			url: `${baseUrl}/v2/pessoas/${id}`,
 			headers: authHeaders,
-			body: fields,
+			body: reqBody,
 		});
 		assertApiSuccess(statusCode, body, this.getNode());
 

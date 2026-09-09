@@ -91,6 +91,14 @@ export const description: INodeProperties[] = [
 			{ displayName: 'Approval', name: 'aprovacao', type: 'multiOptions', options: APPROVAL_OPTIONS, default: [] },
 			{ displayName: 'End Date', name: 'travelDataFim', type: 'dateTime', default: '' },
 			{ displayName: 'Payment', name: 'pagamento', type: 'multiOptions', options: PAYMENT_OPTIONS, default: [] },
+			{
+				displayName: 'Sort',
+				name: 'sort',
+				type: 'string',
+				default: '',
+				placeholder: 'name,-updated_at',
+				description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.',
+			},
 			{ displayName: 'Start Date', name: 'travelDataInicio', type: 'dateTime', default: '' },
 		],
 	},
@@ -116,8 +124,16 @@ export const description: INodeProperties[] = [
 		default: {},
 		displayOptions: { show: { resource: ['travel'], operation: ['listRoutes'] } },
 		options: [
-			{ displayName: 'Start Date', name: 'travelDataInicio', type: 'dateTime', default: '' },
 			{ displayName: 'End Date', name: 'travelDataFim', type: 'dateTime', default: '' },
+			{
+				displayName: 'Sort',
+				name: 'sort',
+				type: 'string',
+				default: '',
+				placeholder: 'name,-updated_at',
+				description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.',
+			},
+			{ displayName: 'Start Date', name: 'travelDataInicio', type: 'dateTime', default: '' },
 		],
 	},
 ];
@@ -141,6 +157,7 @@ export async function execute(
 		if (Array.isArray(additionalFields.aprovacao) && additionalFields.aprovacao.length) reqBody.aprovacao = additionalFields.aprovacao;
 		if (Array.isArray(additionalFields.pagamento) && additionalFields.pagamento.length) reqBody.pagamento = additionalFields.pagamento;
 		if (typeof additionalFields.ativo === 'string' && additionalFields.ativo !== 'all') reqBody.ativo = additionalFields.ativo === 'true';
+		if (typeof additionalFields.sort === 'string' && additionalFields.sort.trim()) reqBody.ordenar = additionalFields.sort;
 
 		if (operation === 'listUsers') {
 			const additionalFieldsUsers = this.getNodeParameter('additionalFieldsUsers', i, {}) as IDataObject;
@@ -179,6 +196,7 @@ export async function execute(
 		const reqBody: IDataObject = { id_usuario: idUsuario, id_dia: idDia };
 		if (additionalFieldsRoutes.travelDataInicio) reqBody.data_inicio = additionalFieldsRoutes.travelDataInicio;
 		if (additionalFieldsRoutes.travelDataFim) reqBody.data_fim = additionalFieldsRoutes.travelDataFim;
+		if (typeof additionalFieldsRoutes.sort === 'string' && additionalFieldsRoutes.sort.trim()) reqBody.ordenar = additionalFieldsRoutes.sort;
 
 		const items = await apiRequestAllItems.call(
 			this,

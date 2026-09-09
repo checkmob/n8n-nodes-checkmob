@@ -58,12 +58,13 @@ export const description: INodeProperties[] = [
 			{ displayName: 'Codes (Comma-Separated)', name: 'codigos', type: 'string', default: '', placeholder: 'A001,A002' },
 			{ displayName: 'Created After', name: 'data_criacao_apos', type: 'dateTime', default: '' },
 			{ displayName: 'Created Before', name: 'data_criacao_antes', type: 'dateTime', default: '' },
-			{ displayName: 'Document', name: 'documento', type: 'string', default: '' },
 			{ displayName: 'IDs (Comma-Separated)', name: 'ids', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Market Sector IDs (Comma-Separated)', name: 'ids_setor_mercado', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Search', name: 'search', type: 'string', default: '', description: 'Text search by name, code, or document' },
 			{ displayName: 'Segment IDs (Comma-Separated)', name: 'ids_segmento', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Sort', name: 'sort', type: 'string', default: '', placeholder: 'name,-updated_at', description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.' },
 			{ displayName: 'Stage IDs (Comma-Separated)', name: 'ids_etapa', type: 'string', default: '', placeholder: '1,2,3' },
+			{ displayName: 'Tax ID', name: 'codigo_fiscal', type: 'string', default: '' },
 			{ displayName: 'Temperature IDs (Comma-Separated)', name: 'ids_temperatura', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Updated After', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Incremental sync' },
 		],
@@ -96,30 +97,44 @@ export const description: INodeProperties[] = [
 		default: {},
 		displayOptions: { show: { resource: ['client'], operation: ['post', 'put'] } },
 		options: [
+			{ displayName: 'Active', name: 'clientAtivo', type: 'boolean', default: true },
+			{ displayName: 'Business Segment ID', name: 'id_setor_mercado', type: 'number', default: 0 },
+			{ displayName: 'Category ID', name: 'id_categoria', type: 'number', default: 0 },
+			{ displayName: 'Check-In Radius (Meters)', name: 'raio_checkin', type: 'number', default: 0 },
+			{ displayName: 'Code', name: 'codigo', type: 'number', default: 0 },
+			{ displayName: 'Contact Cell Phone', name: 'celular_responsavel', type: 'string', default: '' },
+			{ displayName: 'Contact Email', name: 'email_responsavel', type: 'string', default: '' },
+			{ displayName: 'Contact Job Title', name: 'cargo_responsavel', type: 'string', default: '' },
+			{ displayName: 'Contact Name', name: 'responsavel', type: 'string', default: '' },
+			{ displayName: 'Contact Phone', name: 'telefone_responsavel', type: 'string', default: '' },
 			{
-				displayName: 'Active',
-				name: 'clientAtivo',
-				type: 'boolean',
-				default: true,
-			},
-			{
-				displayName: 'Document',
-				name: 'clientDocumento',
+				displayName: 'Custom Fields (JSON)',
+				name: 'campos_personalizados',
 				type: 'string',
+				typeOptions: { rows: 4 },
 				default: '',
-				description: 'CPF, CNPJ, or foreign document',
+				description: 'JSON array of custom field values. E.g.: [{"id_campo":123,"valor":"some text"},{"id_campo":456,"id_opcao":789}].',
 			},
-			{
-				displayName: 'Type',
-				name: 'clientTipo',
-				type: 'options',
-				options: [
-					{ name: 'Individual', value: 'F' },
-					{ name: 'Company', value: 'J' },
-					{ name: 'Foreign', value: 'N' },
-				],
-				default: 'J',
-			},
+			{ displayName: 'Deal Value', name: 'valor_negocio', type: 'number', default: 0 },
+			{ displayName: 'Document', name: 'clientDocumento', type: 'string', default: '', description: 'CPF, CNPJ, or foreign document' },
+			{ displayName: 'Expected Close Date', name: 'data_esperada_fechamento', type: 'dateTime', default: '' },
+			{ displayName: 'Extra Info', name: 'informacoes_adicionais', type: 'string', default: '' },
+			{ displayName: 'International Dialing Code', name: 'ddi', type: 'string', default: '' },
+			{ displayName: 'International Dialing Code (Secondary Phone)', name: 'ddi_secundario', type: 'string', default: '' },
+			{ displayName: 'LinkedIn', name: 'linkedin', type: 'string', default: '' },
+			{ displayName: 'Next Follow-Up Date', name: 'data_proximo_acompanhamento', type: 'dateTime', default: '' },
+			{ displayName: 'Phone', name: 'telefone', type: 'string', default: '' },
+			{ displayName: 'QR Code', name: 'qr_code', type: 'string', default: '' },
+			{ displayName: 'Secondary Phone', name: 'telefone_secundario', type: 'string', default: '' },
+			{ displayName: 'Stage ID', name: 'id_etapa', type: 'number', default: 0 },
+			{ displayName: 'Tax ID', name: 'codigo_fiscal', type: 'string', default: '' },
+			{ displayName: 'Temperature ID', name: 'id_temperatura', type: 'number', default: 0 },
+			{ displayName: 'Type', name: 'clientTipo', type: 'options', options: [
+				{ name: 'Individual', value: 'F' },
+				{ name: 'Company', value: 'J' },
+				{ name: 'Foreign', value: 'N' },
+			], default: 'J' },
+			{ displayName: 'Website', name: 'site', type: 'string', default: '' },
 		],
 	},
 	{
@@ -130,20 +145,45 @@ export const description: INodeProperties[] = [
 		default: {},
 		displayOptions: { show: { resource: ['client'], operation: ['patch'] } },
 		options: [
-			{
-				displayName: 'Type',
-				name: 'tipo',
-				type: 'options',
-				options: [
-					{ name: 'Individual', value: 'F' },
-					{ name: 'Company', value: 'J' },
-					{ name: 'Foreign', value: 'N' },
-				],
-				default: 'J',
-			},
-			{ displayName: 'Name', name: 'nome', type: 'string', default: '' },
-			{ displayName: 'Document', name: 'documento', type: 'string', default: '' },
 			{ displayName: 'Active', name: 'ativo', type: 'boolean', default: true },
+			{ displayName: 'Business Segment ID', name: 'id_setor_mercado', type: 'number', default: 0 },
+			{ displayName: 'Category ID', name: 'id_categoria', type: 'number', default: 0 },
+			{ displayName: 'Check-In Radius (Meters)', name: 'raio_checkin', type: 'number', default: 0 },
+			{ displayName: 'Code', name: 'codigo', type: 'number', default: 0 },
+			{ displayName: 'Contact Cell Phone', name: 'celular_responsavel', type: 'string', default: '' },
+			{ displayName: 'Contact Email', name: 'email_responsavel', type: 'string', default: '' },
+			{ displayName: 'Contact Job Title', name: 'cargo_responsavel', type: 'string', default: '' },
+			{ displayName: 'Contact Name', name: 'responsavel', type: 'string', default: '' },
+			{ displayName: 'Contact Phone', name: 'telefone_responsavel', type: 'string', default: '' },
+			{
+				displayName: 'Custom Fields (JSON)',
+				name: 'campos_personalizados',
+				type: 'string',
+				typeOptions: { rows: 4 },
+				default: '',
+				description: 'JSON array of custom field values. E.g.: [{"id_campo":123,"valor":"some text"},{"id_campo":456,"id_opcao":789}].',
+			},
+			{ displayName: 'Deal Value', name: 'valor_negocio', type: 'number', default: 0 },
+			{ displayName: 'Document', name: 'documento', type: 'string', default: '' },
+			{ displayName: 'Expected Close Date', name: 'data_esperada_fechamento', type: 'dateTime', default: '' },
+			{ displayName: 'Extra Info', name: 'informacoes_adicionais', type: 'string', default: '' },
+			{ displayName: 'International Dialing Code', name: 'ddi', type: 'string', default: '' },
+			{ displayName: 'International Dialing Code (Secondary Phone)', name: 'ddi_secundario', type: 'string', default: '' },
+			{ displayName: 'LinkedIn', name: 'linkedin', type: 'string', default: '' },
+			{ displayName: 'Name', name: 'nome', type: 'string', default: '' },
+			{ displayName: 'Next Follow-Up Date', name: 'data_proximo_acompanhamento', type: 'dateTime', default: '' },
+			{ displayName: 'Phone', name: 'telefone', type: 'string', default: '' },
+			{ displayName: 'QR Code', name: 'qr_code', type: 'string', default: '' },
+			{ displayName: 'Secondary Phone', name: 'telefone_secundario', type: 'string', default: '' },
+			{ displayName: 'Stage ID', name: 'id_etapa', type: 'number', default: 0 },
+			{ displayName: 'Tax ID', name: 'codigo_fiscal', type: 'string', default: '' },
+			{ displayName: 'Temperature ID', name: 'id_temperatura', type: 'number', default: 0 },
+			{ displayName: 'Type', name: 'tipo', type: 'options', options: [
+				{ name: 'Individual', value: 'F' },
+				{ name: 'Company', value: 'J' },
+				{ name: 'Foreign', value: 'N' },
+			], default: 'J' },
+			{ displayName: 'Website', name: 'site', type: 'string', default: '' },
 		],
 	},
 
@@ -180,6 +220,52 @@ export const description: INodeProperties[] = [
 	},
 ];
 
+const CLIENT_WRITE_NUMBER_FIELDS = [
+	'codigo', 'raio_checkin', 'id_categoria', 'id_temperatura', 'id_setor_mercado', 'id_etapa', 'valor_negocio',
+];
+
+const CLIENT_WRITE_STRING_FIELDS = [
+	'telefone', 'telefone_secundario', 'ddi', 'ddi_secundario', 'responsavel', 'email_responsavel',
+	'telefone_responsavel', 'celular_responsavel', 'cargo_responsavel', 'site', 'linkedin', 'informacoes_adicionais',
+	'qr_code',
+];
+
+const CLIENT_WRITE_DATE_FIELDS = ['data_proximo_acompanhamento', 'data_esperada_fechamento'];
+
+function buildClientWriteBody(
+	node: ReturnType<IExecuteFunctions['getNode']>,
+	additionalFields: IDataObject,
+	documentoKey: 'clientDocumento' | 'documento',
+): IDataObject {
+	const reqBody: IDataObject = {};
+
+	const documento = additionalFields[documentoKey];
+	if (typeof documento === 'string' && documento.trim()) reqBody.documento = documento;
+
+	const codigoFiscal = additionalFields.codigo_fiscal;
+	if (typeof codigoFiscal === 'string' && codigoFiscal.trim()) reqBody.codigo_fiscal = codigoFiscal;
+
+	for (const key of CLIENT_WRITE_STRING_FIELDS) {
+		const raw = additionalFields[key];
+		if (typeof raw === 'string' && raw.trim()) reqBody[key] = raw;
+	}
+	for (const key of CLIENT_WRITE_NUMBER_FIELDS) {
+		const raw = additionalFields[key];
+		if (typeof raw === 'number' && raw !== 0) reqBody[key] = raw;
+	}
+	for (const key of CLIENT_WRITE_DATE_FIELDS) {
+		const raw = additionalFields[key];
+		if (raw) reqBody[key] = raw;
+	}
+
+	const camposPersonalizadosRaw = additionalFields.campos_personalizados;
+	if (typeof camposPersonalizadosRaw === 'string' && camposPersonalizadosRaw.trim()) {
+		reqBody.campos_personalizados = parseJson(camposPersonalizadosRaw, node, 'Custom Fields (JSON)');
+	}
+
+	return reqBody;
+}
+
 export async function execute(
 	this: IExecuteFunctions,
 	i: number,
@@ -203,7 +289,9 @@ export async function execute(
 		if (typeof filters.codigos === 'string' && filters.codigos.trim()) {
 			reqBody.codigos = filters.codigos.split(',').map((v) => v.trim()).filter(Boolean);
 		}
-		if (typeof filters.documento === 'string' && filters.documento.trim()) reqBody.documento = filters.documento;
+		if (typeof filters.codigo_fiscal === 'string' && filters.codigo_fiscal.trim()) {
+			reqBody.codigo_fiscal = filters.codigo_fiscal;
+		}
 		for (const key of ['ids_segmento', 'ids_categoria', 'ids_temperatura', 'ids_setor_mercado', 'ids_etapa']) {
 			const raw = filters[key];
 			if (typeof raw === 'string' && raw.trim()) reqBody[key] = toNumArray(raw);
@@ -211,6 +299,7 @@ export async function execute(
 		if (filters.data_criacao_apos) reqBody.data_criacao_apos = filters.data_criacao_apos;
 		if (filters.data_criacao_antes) reqBody.data_criacao_antes = filters.data_criacao_antes;
 		if (filters.atualizado_apos) reqBody.atualizado_apos = filters.atualizado_apos;
+		if (typeof filters.sort === 'string' && filters.sort.trim()) reqBody.ordenar = filters.sort;
 
 		const items = await apiRequestAllItems.call(
 			this,
@@ -239,14 +328,15 @@ export async function execute(
 		const additionalFields = this.getNodeParameter('clientCreateFields', i, {}) as IDataObject;
 		const tipo = (additionalFields.clientTipo as string) ?? 'J';
 		const ativo = (additionalFields.clientAtivo as boolean) ?? true;
-		const documento = (additionalFields.clientDocumento as string) ?? '';
 
-		const reqBody: IDataObject = { tipo, nome, ativo };
-		if (documento) reqBody.documento = documento;
+		const reqBody = buildClientWriteBody(this.getNode(), additionalFields, 'clientDocumento');
+		reqBody.tipo = tipo;
+		reqBody.nome = nome;
+		reqBody.ativo = ativo;
 
 		const { statusCode, body } = await apiRequest.call(this, {
 			method: 'POST',
-			url: `${baseUrl}/v2/clientes`,
+			url: `${baseUrl}/v2/clientes/post`,
 			headers: authHeaders,
 			body: reqBody,
 		});
@@ -277,10 +367,11 @@ export async function execute(
 		const additionalFields = this.getNodeParameter('clientCreateFields', i, {}) as IDataObject;
 		const tipo = (additionalFields.clientTipo as string) ?? 'J';
 		const ativo = (additionalFields.clientAtivo as boolean) ?? true;
-		const documento = (additionalFields.clientDocumento as string) ?? '';
 
-		const reqBody: IDataObject = { tipo, nome, ativo };
-		if (documento) reqBody.documento = documento;
+		const reqBody = buildClientWriteBody(this.getNode(), additionalFields, 'clientDocumento');
+		reqBody.tipo = tipo;
+		reqBody.nome = nome;
+		reqBody.ativo = ativo;
 
 		const { statusCode, body } = await apiRequest.call(this, {
 			method: 'PUT',
@@ -295,13 +386,18 @@ export async function execute(
 
 	if (operation === 'patch') {
 		const id = this.getNodeParameter('clientId', i) as number;
-		const fields = this.getNodeParameter('clientPatchFields', i, {}) as IDataObject;
+		const additionalFields = this.getNodeParameter('clientPatchFields', i, {}) as IDataObject;
+
+		const reqBody = buildClientWriteBody(this.getNode(), additionalFields, 'documento');
+		if (typeof additionalFields.tipo === 'string') reqBody.tipo = additionalFields.tipo;
+		if (typeof additionalFields.nome === 'string' && additionalFields.nome.trim()) reqBody.nome = additionalFields.nome;
+		if (typeof additionalFields.ativo === 'boolean') reqBody.ativo = additionalFields.ativo;
 
 		const { statusCode, body } = await apiRequest.call(this, {
 			method: 'PATCH',
 			url: `${baseUrl}/v2/clientes/${id}`,
 			headers: authHeaders,
-			body: fields,
+			body: reqBody,
 		});
 		assertApiSuccess(statusCode, body, this.getNode());
 

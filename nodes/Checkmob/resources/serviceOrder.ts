@@ -77,6 +77,14 @@ export const description: INodeProperties[] = [
 			{ displayName: 'Search', name: 'search', type: 'string', default: '' },
 			{ displayName: 'Segment IDs (Comma-Separated)', name: 'ids_segmento', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Service Type IDs (Comma-Separated)', name: 'ids_tipo_servico', type: 'string', default: '', placeholder: '1,2,3' },
+			{
+				displayName: 'Sort',
+				name: 'sort',
+				type: 'string',
+				default: '',
+				placeholder: 'name,-updated_at',
+				description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.',
+			},
 			{ displayName: 'Status IDs (Comma-Separated)', name: 'ids_status', type: 'string', default: '', placeholder: '1,2,3' },
 			{ displayName: 'Updated After', name: 'atualizado_apos', type: 'dateTime', default: '', description: 'Incremental sync' },
 			{ displayName: 'User IDs (Comma-Separated)', name: 'ids_usuario', type: 'string', default: '', placeholder: '1,2,3' },
@@ -194,6 +202,7 @@ export async function execute(
 		}
 		if (filters.prioridade_min) reqBody.prioridade_min = filters.prioridade_min;
 		if (filters.prioridade_max) reqBody.prioridade_max = filters.prioridade_max;
+		if (typeof filters.sort === 'string' && filters.sort.trim()) reqBody.ordenar = filters.sort;
 
 		const items = await apiRequestAllItems.call(
 			this,

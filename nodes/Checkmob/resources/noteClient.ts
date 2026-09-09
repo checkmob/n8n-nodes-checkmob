@@ -44,6 +44,38 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['noteClient'], operation: ['list'], returnAll: [false] } },
 		description: 'Max number of results to return',
 	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { resource: ['noteClient'], operation: ['list'] } },
+		options: [
+			{
+				displayName: 'Search',
+				name: 'search',
+				type: 'string',
+				default: '',
+				description: 'Text search by note content',
+			},
+			{
+				displayName: 'Sort',
+				name: 'sort',
+				type: 'string',
+				default: '',
+				placeholder: 'name,-updated_at',
+				description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.',
+			},
+			{
+				displayName: 'Updated After',
+				name: 'updatedAfter',
+				type: 'dateTime',
+				default: '',
+				description: 'Incremental sync: returns only records updated after this date',
+			},
+		],
+	},
 
 	// ── Create ───────────────────────────────────────────────────────────────────
 	{
@@ -79,13 +111,23 @@ export async function execute(
 		const idClient = this.getNodeParameter('noteClientId', i) as number;
 		const returnAll = this.getNodeParameter('returnAll', i, false) as boolean;
 		const limit = this.getNodeParameter('limit', i, 50) as number;
+		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
+
+		const reqBody: IDataObject = {};
+		if (typeof additionalFields.search === 'string' && additionalFields.search.trim()) {
+			reqBody.busca = additionalFields.search;
+		}
+		if (additionalFields.updatedAfter) reqBody.atualizado_apos = additionalFields.updatedAfter;
+		if (typeof additionalFields.sort === 'string' && additionalFields.sort.trim()) {
+			reqBody.ordenar = additionalFields.sort;
+		}
 
 		const items = await apiRequestAllItems.call(
 			this,
 			{
 				url: `${baseUrl}/v2/clientes/${idClient}/notas/list`,
 				headers: authHeaders,
-				body: {},
+				body: reqBody,
 				returnAll,
 				limit,
 			},
