@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequestAllItems } from '../transport';
+import { apiRequestAllItems, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -39,6 +39,13 @@ export const description: INodeProperties[] = [
 		default: {},
 		displayOptions: { show: { resource: ['customField'], operation: ['list'] } },
 		options: [
+			{
+				displayName: 'IDs (Comma-Separated)',
+				name: 'ids',
+				type: 'string',
+				default: '',
+				placeholder: '1,2,3',
+			},
 			{
 				displayName: 'Origin',
 				name: 'cfOrigin',
@@ -91,6 +98,9 @@ export async function execute(
 
 		const origin = (additionalFields.cfOrigin as string) || 'clientes';
 		const reqBody: IDataObject = {};
+		if (typeof additionalFields.ids === 'string' && additionalFields.ids.trim()) {
+			reqBody.ids = toNumArray(additionalFields.ids);
+		}
 		if (typeof additionalFields.search === 'string' && additionalFields.search.trim()) {
 			reqBody.busca = additionalFields.search;
 		}

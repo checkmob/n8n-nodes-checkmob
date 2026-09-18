@@ -131,7 +131,7 @@ export const description: INodeProperties[] = [
 			{ displayName: 'Completed', name: 'concluida', type: 'boolean', default: false },
 			{ displayName: 'Contact ID', name: 'id_contato', type: 'number', default: 0 },
 			{ displayName: 'Created for Me', name: 'criada_para_mim', type: 'boolean', default: false },
-			{ displayName: 'Group ID', name: 'id_grupo', type: 'number', default: 0 },
+			{ displayName: 'Group ID', name: 'id_grupo', type: 'number', default: 0, description: 'Although optional per the API schema, some accounts require a group to be set — omitting it may cause the request to fail' },
 			{ displayName: 'Name', name: 'nome', type: 'string', default: '' },
 			{ displayName: 'Priority', name: 'prioridade', type: 'number', default: 0 },
 			{ displayName: 'Requires Completion Checklist', name: 'exige_checklist_conclusao', type: 'boolean', default: false },

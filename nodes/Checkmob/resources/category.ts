@@ -1,6 +1,6 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties, IDataObject } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
-import { apiRequestAllItems } from '../transport';
+import { apiRequestAllItems, toNumArray } from '../transport';
 
 export const description: INodeProperties[] = [
 	{
@@ -40,6 +40,13 @@ export const description: INodeProperties[] = [
 		displayOptions: { show: { resource: ['category'], operation: ['list'] } },
 		options: [
 			{
+				displayName: 'IDs (Comma-Separated)',
+				name: 'ids',
+				type: 'string',
+				default: '',
+				placeholder: '1,2,3',
+			},
+			{
 				displayName: 'Search',
 				name: 'search',
 				type: 'string',
@@ -53,6 +60,13 @@ export const description: INodeProperties[] = [
 				default: '',
 				placeholder: 'name,-updated_at',
 				description: 'Comma-separated list of fields to sort by. Prefix a field with "-" for descending order. Allowed field names vary by resource; the API returns an error listing valid names if an unknown field is sent.',
+			},
+			{
+				displayName: 'Source',
+				name: 'origin',
+				type: 'string',
+				default: '',
+				description: 'Filter categories by their source/origin identifier',
 			},
 			{
 				displayName: 'Updated After',
@@ -79,8 +93,14 @@ export async function execute(
 		const additionalFields = this.getNodeParameter('additionalFields', i, {}) as IDataObject;
 
 		const reqBody: IDataObject = {};
+		if (typeof additionalFields.ids === 'string' && additionalFields.ids.trim()) {
+			reqBody.ids = toNumArray(additionalFields.ids);
+		}
 		if (typeof additionalFields.search === 'string' && additionalFields.search.trim()) {
 			reqBody.busca = additionalFields.search;
+		}
+		if (typeof additionalFields.origin === 'string' && additionalFields.origin.trim()) {
+			reqBody.origem = additionalFields.origin;
 		}
 		if (additionalFields.updatedAfter) reqBody.atualizado_apos = additionalFields.updatedAfter;
 		if (typeof additionalFields.sort === 'string' && additionalFields.sort.trim()) {
